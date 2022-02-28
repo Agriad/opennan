@@ -33,6 +33,10 @@ uint64_t nan_calculate_master_rank(const uint8_t master_preference,
             .master_preference = master_preference,
             .random_factor = random_factor}};
 
+    log_debug("MAC Address: %s", ether_addr_to_string(address));
+    log_debug("Master Preference: %d", master_preference);
+    log_debug("Random Factor: %d", random_factor);
+
     return master_rank.value;
 }
 
