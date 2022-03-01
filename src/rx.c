@@ -387,6 +387,9 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
 
     if (peer->anchor_master_rank != peer->last_anchor_master_rank)
     {
+        log_debug("peer anchor master rank: %lu", peer->anchor_master_rank);
+        log_debug("peer last anchor master rank: %lu", peer->last_anchor_master_rank);
+        
         if (nan_is_master_rank_issuer(&state->self_address, peer->anchor_master_rank))
         {
             log_debug("Peer %s selected us as anchor master", ether_addr_to_string(&peer->addr));
@@ -415,7 +418,19 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
         int result = nan_cluster_compare_grade(state->sync.master_preference, synced_time_usec,
                                                peer->master_preference, timestamp);
 
-        if (result > 0)
+        // if (result > 0)
+        // {
+        //     state->cluster.cluster_id = *cluster_id;
+        //     nan_timer_sync_time(&state->timer, now_usec, timestamp);
+        //     log_debug("Joined new cluster: %s", ether_addr_to_string(cluster_id));
+        // }
+        // else
+        // {
+        //     log_debug("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
+        //     log_trace("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
+        // }
+
+        if (true)
         {
             state->cluster.cluster_id = *cluster_id;
             nan_timer_sync_time(&state->timer, now_usec, timestamp);
@@ -423,6 +438,7 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
         }
         else
         {
+            log_debug("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
             log_trace("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
         }
     }

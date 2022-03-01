@@ -36,12 +36,15 @@ uint64_t nan_calculate_master_rank(const uint8_t master_preference,
     log_debug("MAC Address: %s", ether_addr_to_string(address));
     log_debug("Master Preference: %d", master_preference);
     log_debug("Random Factor: %d", random_factor);
+    log_debug("Master Rank: %lu", master_rank.value);
 
     return master_rank.value;
 }
 
 struct ether_addr *nan_get_address_from_master_rank(const uint64_t *master_rank)
 {
+    // log_debug("nan get address from master rank: %d", master_rank);
+
     return &((union nan_master_rank *)master_rank)->parts.address;
 }
 
@@ -75,9 +78,9 @@ void nan_sync_state_init(struct nan_sync_state *state,
                          const struct ether_addr *interface_address)
 {
     state->role = MASTER;
-    state->master_rank = nan_calculate_master_rank(0, 0, interface_address);
-    state->master_preference = 0;
-    state->random_factor = 0;
+    state->master_rank = nan_calculate_master_rank(100, 100, interface_address);
+    state->master_preference = 100;
+    state->random_factor = 100;
 
     state->last_master_preference_update_usec = 0;
     state->last_random_factor_update_usec = 0;
