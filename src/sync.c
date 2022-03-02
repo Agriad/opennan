@@ -78,9 +78,9 @@ void nan_sync_state_init(struct nan_sync_state *state,
                          const struct ether_addr *interface_address)
 {
     state->role = MASTER;
-    state->master_rank = nan_calculate_master_rank(100, 100, interface_address);
-    state->master_preference = 100;
-    state->random_factor = 100;
+    state->master_rank = nan_calculate_master_rank(254, 255, interface_address);
+    state->master_preference = 254;
+    state->random_factor = 255;
 
     state->last_master_preference_update_usec = 0;
     state->last_random_factor_update_usec = 0;
@@ -368,14 +368,16 @@ bool nan_update_master_preference(struct nan_sync_state *state, const struct nan
     bool updated = false;
     if (elapsed_dws > NAN_RANDOM_FACTOR_UPDATE_MIN_DW)
     {
-        state->random_factor = get_rand_num(0, 255);
+        // state->random_factor = get_rand_num(0, 255);
+        state->random_factor = 255;
         state->last_random_factor_update_usec = now_usec;
         updated = true;
     }
 
     if (elapsed_dws > NAN_MASTER_PREFERENCE_UPDATE_MIN_DW)
     {
-        state->master_preference = NAN_MASTER_PREFERENCE;
+        // state->master_preference = NAN_MASTER_PREFERENCE;
+        state->master_preference = 254;
         state->last_master_preference_update_usec = now_usec;
         updated = true;
     }
