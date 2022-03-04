@@ -117,20 +117,25 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
         log_error("Could not send frame: %d", err);
 }
 
+// void nan_send_discovery_beacon(struct ev_loop *loop, ev_timer *timer, int revents)
+// {
+//     (void)revents;
+//     struct daemon_state *state = timer->data;
+//     uint64_t now_usec = clock_time_usec();
+
+//     if (nan_can_send_discovery_beacon(&state->nan_state, now_usec))
+//     {
+//         nan_send_beacon(state, NAN_DISCOVERY_BEACON, now_usec);
+//         nan_timer_set_last_discovery_beacon_usec(&state->nan_state.timer, now_usec);
+//     }
+
+//     uint64_t next_beacon_time_usec = nan_timer_next_discovery_beacon_usec(&state->nan_state.timer, now_usec);
+//     ev_timer_rearm_usec(loop, timer, next_beacon_time_usec);
+// }
+
 void nan_send_discovery_beacon(struct ev_loop *loop, ev_timer *timer, int revents)
 {
-    (void)revents;
-    struct daemon_state *state = timer->data;
-    uint64_t now_usec = clock_time_usec();
-
-    if (nan_can_send_discovery_beacon(&state->nan_state, now_usec))
-    {
-        nan_send_beacon(state, NAN_DISCOVERY_BEACON, now_usec);
-        nan_timer_set_last_discovery_beacon_usec(&state->nan_state.timer, now_usec);
-    }
-
-    uint64_t next_beacon_time_usec = nan_timer_next_discovery_beacon_usec(&state->nan_state.timer, now_usec);
-    ev_timer_rearm_usec(loop, timer, next_beacon_time_usec);
+    log_debug("nan_send_discovery_beacon: attack not sending discovery beacon");
 }
 
 void nan_send_buffered_frames(struct daemon_state *state)
@@ -148,29 +153,34 @@ void nan_send_buffered_frames(struct daemon_state *state)
     }
 }
 
+// void nan_send_service_discovery_frame(struct daemon_state *state)
+// {
+//     list_t announced_services = list_init();
+//     nan_get_services_to_announce(&state->nan_state.services, announced_services);
+//     if (list_len(announced_services) > 0)
+//     {
+//         struct buf *buf = buf_new_owned(BUF_MAX_LENGTH);
+//         nan_build_service_discovery_frame(buf, &state->nan_state, &NAN_NETWORK_ID, announced_services);
+
+//         int length = buf_position(buf);
+//         int err = wlan_send(&state->io_state, buf_data(buf), length);
+
+//         log_trace("Send service discovery frame for services:");
+//         struct nan_service *service;
+//         LIST_FOR_EACH(announced_services, service, log_trace(" * %s", service->service_name))
+
+//         buf_free(buf);
+//         if (err < 0)
+//             log_error("Could not send service discovery frame: %d", err);
+
+//         nan_update_announced_services(announced_services);
+//     }
+//     list_free(announced_services, false);
+// }
+
 void nan_send_service_discovery_frame(struct daemon_state *state)
 {
-    list_t announced_services = list_init();
-    nan_get_services_to_announce(&state->nan_state.services, announced_services);
-    if (list_len(announced_services) > 0)
-    {
-        struct buf *buf = buf_new_owned(BUF_MAX_LENGTH);
-        nan_build_service_discovery_frame(buf, &state->nan_state, &NAN_NETWORK_ID, announced_services);
-
-        int length = buf_position(buf);
-        int err = wlan_send(&state->io_state, buf_data(buf), length);
-
-        log_trace("Send service discovery frame for services:");
-        struct nan_service *service;
-        LIST_FOR_EACH(announced_services, service, log_trace(" * %s", service->service_name))
-
-        buf_free(buf);
-        if (err < 0)
-            log_error("Could not send service discovery frame: %d", err);
-
-        nan_update_announced_services(announced_services);
-    }
-    list_free(announced_services, false);
+    log_debug("nan_send_service_discovery_frame: attack not sending service discovery");
 }
 
 void nan_handle_discovery_window(struct ev_loop *loop, ev_timer *timer, int revents)
