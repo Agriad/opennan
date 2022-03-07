@@ -418,19 +418,9 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
         int result = nan_cluster_compare_grade(state->sync.master_preference, synced_time_usec,
                                                peer->master_preference, timestamp);
 
-        // if (result > 0)
-        // {
-        //     state->cluster.cluster_id = *cluster_id;
-        //     nan_timer_sync_time(&state->timer, now_usec, timestamp);
-        //     log_debug("Joined new cluster: %s", ether_addr_to_string(cluster_id));
-        // }
-        // else
-        // {
-        //     log_debug("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
-        //     log_trace("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
-        // }
+        log_debug("nan rx beacon: nan timer get synced time usec output - %d", synced_time_usec);
 
-        if (true)
+        if (result > 0)
         {
             state->cluster.cluster_id = *cluster_id;
             nan_timer_sync_time(&state->timer, now_usec, timestamp);
@@ -441,6 +431,18 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
             log_debug("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
             log_trace("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
         }
+
+        // if (true)
+        // {
+        //     state->cluster.cluster_id = *cluster_id;
+        //     nan_timer_sync_time(&state->timer, now_usec, timestamp);
+        //     log_debug("Joined new cluster: %s", ether_addr_to_string(cluster_id));
+        // }
+        // else
+        // {
+        //     log_debug("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
+        //     log_trace("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
+        // }
     }
     else if (beacon_type == NAN_SYNC_BEACON)
     {

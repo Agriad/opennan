@@ -1,5 +1,6 @@
 #include "cluster.h"
 #include "frame.h"
+#include "log.h"
 #include "utils.h"
 #include "timer.h"
 
@@ -20,6 +21,12 @@ void nan_cluster_state_init(struct nan_cluster_state *state)
 int nan_cluster_compare_grade(uint8_t master_preferenceA, uint64_t timestampA,
                               uint8_t master_preferenceB, uint64_t timestampB)
 {
+    log_debug("nan cluster compare grade: master preference A - %d", master_preferenceA);
+    log_debug("nan cluster compare grade: master preference B - %d", master_preferenceB);
+    log_debug("nan cluster compare grade: timestamp A - %d", timestampA & 0x7ffff);
+    log_debug("nan cluster compare grade: timestamp B - %d", timestampB & 0x7ffff);
+
+
     if (master_preferenceA == master_preferenceB)
         return (timestampA & 0x7ffff) < (timestampB & 0x7ffff);
         
