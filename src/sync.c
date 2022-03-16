@@ -78,9 +78,9 @@ void nan_sync_state_init(struct nan_sync_state *state,
                          const struct ether_addr *interface_address)
 {
     state->role = MASTER;
-    state->master_rank = nan_calculate_master_rank(100, 100, interface_address);
-    state->master_preference = 100;
-    state->random_factor = 100;
+    state->master_rank = nan_calculate_master_rank(0, 0, interface_address);
+    state->master_preference = 0;
+    state->random_factor = 0;
 
     state->last_master_preference_update_usec = 0;
     state->last_random_factor_update_usec = 0;

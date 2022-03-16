@@ -122,6 +122,8 @@ void nan_peer_set_beacon_information(struct nan_peer *peer, const signed char rs
 {
     moving_average_add(peer->rssi_average_state, peer->rssi_average, signed char, rssi);
     peer->last_timestamp = timestamp;
+
+    log_debug("nan peer set beacon information: timestamp - %lld", timestamp);
 }
 
 void nan_peer_remove(struct nan_peer_state *state, struct nan_peer *peer)

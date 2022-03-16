@@ -102,6 +102,8 @@ static void dump_frame(const char *dump_file, const struct pcap_pkthdr *header, 
 
 void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint64_t now_usec)
 {
+    log_debug("nan send beacon: sending beacon");
+
     struct buf *buf = buf_new_owned(BUF_MAX_LENGTH);
     nan_build_beacon_frame(buf, &state->nan_state, type, now_usec);
     if (buf_error(buf) < 0)

@@ -240,6 +240,11 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
     beacon_header->oui = NAN_OUI;
     beacon_header->oui_type = NAN_OUI_TYPE_BEACON;
 
+    log_debug("nan add beacon header: time stamp - %d", htole64(synced_time));
+    log_debug("nan add beacon header: synced stamp - %d", synced_time);
+
+    log_debug("nan add beacon header: beacon header time stamp - %d", beacon_header -> time_stamp);
+
     if (type == NAN_SYNC_BEACON)
         beacon_header->beacon_interval = NAN_SYNC_BEACON_INTERVAL_TU;
     else
@@ -313,6 +318,8 @@ int nan_transmit(struct nan_state *state, const struct ether_addr *destination,
                  const uint8_t instance_id, const uint8_t requestor_instance_id,
                  const char *service_specific_info, const size_t service_specific_info_length)
 {
+    log_debug("nan transmit: transmitting");
+
     struct nan_service *service = nan_get_service_by_instance_id(&state->services, instance_id, -1);
 
     if (service == NULL)

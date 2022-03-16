@@ -304,13 +304,22 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     struct oui oui;
     uint8_t oui_type;
 
+    log_debug("nan parse beacon header: timestamp before d - %d", timestamp);
+    log_debug("nan parse beacon header: timestamp before le - %le", timestamp);
+
     read_le64(frame, timestamp);
+    log_debug("nan parse beacon header: frame timestamp d - %d", frame);
+    log_debug("nan parse beacon header: frame timestamp le - %le", frame);
+    log_debug("nan parse beacon header: timestamp after d - %d", timestamp);
+    log_debug("nan parse beacon header: timestamp after le - %le", timestamp);
     read_le16(frame, &beacon_interval);
     read_le16(frame, &capability);
     read_u8(frame, &element_id);
     read_u8(frame, &length);
     read_bytes_copy(frame, (uint8_t *)&oui, OUI_LEN);
     read_u8(frame, &oui_type);
+
+    // log_debug("nan parse beacon header: timestamp - %d", frame);
 
     if (buf_error(frame))
         return RX_TOO_SHORT;
@@ -325,6 +334,8 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
         return RX_UNEXPECTED_TYPE;
     }
 
+    // log_debug("nan parse beacon header: rx ok");
+
     return RX_OK;
 }
 
@@ -336,8 +347,20 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     int beacon_type = 0;
     int result = 0;
 
+    // result = nan_parse_beacon_header(frame, &beacon_type, &timestamp);
+
     if ((result = nan_parse_beacon_header(frame, &beacon_type, &timestamp)) != RX_OK)
+        // log_debug("nan rx beacon: if result");
         return result;
+
+    // nan_parse_beacon_header(frame, &beacon_type, &timestamp);
+
+    // log_debug("nan rx beacon: not if result");
+
+    timestamp = 1048573;
+
+    log_debug("nan rx beacon: timestamp - %d", timestamp);
+    log_debug("nan rx beacon: result - %d", result);
 
     log_trace("nan_beacon: received %s beacon from cluster %s",
               nan_beacon_type_to_string(beacon_type),
@@ -414,6 +437,8 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     bool in_initial_cluster = list_len(state->peers.peers) == 1 && peer_status == PEER_ADD;
     if (is_new_cluster || in_initial_cluster)
     {
+        log_debug("nan rx beacon: in if case");
+
         uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, now_usec);
         int result = nan_cluster_compare_grade(state->sync.master_preference, synced_time_usec,
                                                peer->master_preference, timestamp);
@@ -446,6 +471,8 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     }
     else if (beacon_type == NAN_SYNC_BEACON)
     {
+        log_debug("nan rx beacon: in else if case");
+
         uint64_t last_anchor_master = state->sync.anchor_master_rank;
 
         uint64_t synced_time_tu = nan_timer_get_synced_time_tu(&state->timer, now_usec);
