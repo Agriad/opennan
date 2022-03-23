@@ -29,7 +29,12 @@ int nan_add_master_indication_attribute(struct buf *buf, const struct nan_state 
     attribute->master_preference = state->sync.master_preference;
     attribute->random_factor = state->sync.random_factor;
 
+    log_debug("nan add master indication attribute: buf current 1 - %x", buf_current(buf));
+
     buf_advance(buf, sizeof(struct nan_master_indication_attribute));
+
+    log_debug("nan add master indication attribute: buf current 2 - %x", buf_current(buf));
+
     return sizeof(struct nan_master_indication_attribute);
 }
 
@@ -42,7 +47,12 @@ int nan_add_cluster_attribute(struct buf *buf, const struct nan_state *state)
     attribute->hop_count = state->sync.hop_count;
     attribute->anchor_master_beacon_transmission_time = htole32(state->sync.ambtt);
 
+    log_debug("nan add cluster attribute: buf current 1 - %x", buf_current(buf));
+
     buf_advance(buf, sizeof(struct nan_cluster_attribute));
+
+    log_debug("nan add cluster attribute: buf current 2 - %x", buf_current(buf));
+
     return sizeof(struct nan_cluster_attribute);
 }
 
@@ -280,13 +290,27 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
     int *beacon_header_address = &buf;
 
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)(buf_current(buf) - 0x12);
+    log_debug("nan build beacon frame: buf current - %x", buf_current(buf));
+    log_debug("nan build beacon frame: buf current math - %x", buf_current(buf) - 0x12);
     log_debug("nan build beacon frame: beacon header time stamp - %lld", beacon_header -> time_stamp);
 
     log_debug("nan build beacon frame: data length - %d", *data_length);
 
     uint8_t attributes_length = 0;
     attributes_length += nan_add_master_indication_attribute(buf, state);
+
+    struct nan_beacon_frame *beacon_header1 = (struct nan_beacon_frame *)(buf_current(buf) - (0x5 + 0x12));
+    log_debug("nan build beacon frame: buf current 1 - %x", buf_current(buf));
+    log_debug("nan build beacon frame: buf current math 1 - %x", buf_current(buf) - (0x5 + 0x12));
+    log_debug("nan build beacon frame: beacon header time stamp 1 - %lld", beacon_header1 -> time_stamp);
+
     attributes_length += nan_add_cluster_attribute(buf, state);
+
+    struct nan_beacon_frame *beacon_header2 = (struct nan_beacon_frame *)(buf_current(buf) - (0x5 + 0x12 + 0x10));
+    log_debug("nan build beacon frame: buf current 2 - %x", buf_current(buf));
+    log_debug("nan build beacon frame: buf current math 2 - %x", buf_current(buf) - (0x5 + 0x12 + 0x10));
+    log_debug("nan build beacon frame: beacon header time stamp 2 - %lld", beacon_header2 -> time_stamp);
+
     *data_length += attributes_length;
 
     if (state->ieee80211.fcs)
