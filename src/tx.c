@@ -226,24 +226,29 @@ int nan_add_data_path_attribute(struct buf *buf, const struct nan_data_path *dat
 void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum nan_beacon_type type,
                            uint8_t **data_length, const uint64_t now_usec)
 {
+
+    log_debug("nan add beacon header: buf address 1 - %x", &buf);
+
     ieee80211_add_radiotap_header(buf, &state->ieee80211);
     ieee80211_add_nan_header(buf, &state->interface_address, &NAN_BROADCAST_ADDRESS, &state->cluster.cluster_id,
                              &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
 
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)buf_current(buf);
-    uint64_t synced_time = nan_timer_get_synced_time_usec(&state->timer, now_usec);
+    // uint64_t synced_time = nan_timer_get_synced_time_usec(&state->timer, now_usec);
+    uint64_t synced_time = 252645135;
 
     beacon_header->time_stamp = htole64(synced_time);
+    // beacon_header->time_stamp = 252645135;
     beacon_header->capability = htole16(0x0420);
     beacon_header->element_id = 0xdd;
     beacon_header->length = 4;
     beacon_header->oui = NAN_OUI;
     beacon_header->oui_type = NAN_OUI_TYPE_BEACON;
 
-    log_debug("nan add beacon header: time stamp - %d", htole64(synced_time));
-    log_debug("nan add beacon header: synced stamp - %d", synced_time);
+    log_debug("nan add beacon header: time stamp - %lld", htole64(synced_time));
+    log_debug("nan add beacon header: synced stamp - %lld", synced_time);
 
-    log_debug("nan add beacon header: beacon header time stamp - %d", beacon_header -> time_stamp);
+    log_debug("nan add beacon header: beacon header time stamp - %lld", beacon_header -> time_stamp);
 
     if (type == NAN_SYNC_BEACON)
         beacon_header->beacon_interval = NAN_SYNC_BEACON_INTERVAL_TU;
@@ -252,7 +257,18 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
 
     *data_length = &beacon_header->length;
 
+    log_debug("nan add beacon header: beacon header time stamp 2 - %lld", beacon_header -> time_stamp);
+
+    log_debug("nan add beacon header: size of nan beacon frame - %d", sizeof(struct nan_beacon_frame));
+    log_debug("nan add beacon header: beacon frame address - %x", &buf);
+    log_debug("nan add beacon header: buf current - %x", buf_current(buf));
+
     buf_advance(buf, sizeof(struct nan_beacon_frame));
+
+    log_debug("nan add beacon header: size of nan beacon frame - %d", sizeof(struct nan_beacon_frame));
+    log_debug("nan add beacon header: buf address 2 - %x", &buf);
+    log_debug("nan add beacon header: buf current - %x", buf_current(buf));
+    log_debug("nan add beacon header: beacon header time stamp 3 - %lld", beacon_header -> time_stamp);
 }
 
 void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
@@ -260,6 +276,13 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
 {
     uint8_t *data_length;
     nan_add_beacon_header(buf, state, type, &data_length, now_usec);
+
+    int *beacon_header_address = &buf;
+
+    struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)(buf_current(buf) - 0x12);
+    log_debug("nan build beacon frame: beacon header time stamp - %lld", beacon_header -> time_stamp);
+
+    log_debug("nan build beacon frame: data length - %d", *data_length);
 
     uint8_t attributes_length = 0;
     attributes_length += nan_add_master_indication_attribute(buf, state);

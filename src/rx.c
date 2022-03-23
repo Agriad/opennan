@@ -339,6 +339,10 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     return RX_OK;
 }
 
+// int nan_get_timestamp(struct buf *frame, uint64_t *timestamp) {
+//     return 
+// }
+
 int nan_rx_beacon(struct buf *frame, struct nan_state *state,
                   const struct ether_addr *peer_address, const struct ether_addr *cluster_id,
                   const signed char rssi, const uint64_t now_usec)
@@ -357,7 +361,7 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
 
     // log_debug("nan rx beacon: not if result");
 
-    timestamp = 1048573;
+    // timestamp = 1048573;
 
     log_debug("nan rx beacon: timestamp - %d", timestamp);
     log_debug("nan rx beacon: result - %d", result);

@@ -105,6 +105,7 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
     log_debug("nan send beacon: sending beacon");
 
     struct buf *buf = buf_new_owned(BUF_MAX_LENGTH);
+    log_debug("nan send beacon: buf - %s", buf);
     nan_build_beacon_frame(buf, &state->nan_state, type, now_usec);
     if (buf_error(buf) < 0)
     {
@@ -114,6 +115,7 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
 
     int length = buf_position(buf);
     log_trace("Send %s beacon of length %d", nan_beacon_type_to_string(type), length);
+    log_debug("Send %s beacon of length %d", nan_beacon_type_to_string(type), length);
     int err = wlan_send(&state->io_state, buf_data(buf), length);
     if (err < 0)
         log_error("Could not send frame: %d", err);
@@ -231,6 +233,7 @@ void nan_clean_peers(struct ev_loop *loop, ev_timer *timer, int revents)
 void nan_receive_frame(uint8_t *user, const struct pcap_pkthdr *header, const uint8_t *buf)
 {
     log_trace("Received frame of length %d", header->caplen);
+    log_debug("Received frame of length %d", header->caplen);
     struct daemon_state *state = (void *)user;
     struct buf *frame = buf_new_const(buf, header->caplen);
 
