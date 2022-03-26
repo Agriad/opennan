@@ -146,6 +146,7 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
     log_debug("nan send beacon: buf data - %d", buf_data(buf));
     log_debug("nan send beacon: buf data hex - %x", buf_data(buf));
     log_debug("nan send beacon: buf data lld - %lld", buf_data(buf));
+    log_debug("nan send beacon: state io state - %s", &state -> io_state);
     int err = wlan_send(&state->io_state, buf_data(buf), length);
     if (err < 0)
         log_error("Could not send frame: %d", err);
