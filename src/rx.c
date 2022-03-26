@@ -304,14 +304,15 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     struct oui oui;
     uint8_t oui_type;
 
-    log_debug("nan parse beacon header: timestamp before d - %d", timestamp);
-    log_debug("nan parse beacon header: timestamp before le - %le", timestamp);
+    // log_debug("nan parse beacon header: timestamp before d - %d", timestamp);
+    // log_debug("nan parse beacon header: timestamp before le - %le", timestamp);
 
     read_le64(frame, timestamp);
-    log_debug("nan parse beacon header: frame timestamp d - %d", frame);
-    log_debug("nan parse beacon header: frame timestamp le - %le", frame);
-    log_debug("nan parse beacon header: timestamp after d - %d", timestamp);
-    log_debug("nan parse beacon header: timestamp after le - %le", timestamp);
+    // log_debug("nan parse beacon header: frame timestamp d - %d", frame);
+    // log_debug("nan parse beacon header: frame timestamp le - %le", frame);
+    // log_debug("nan parse beacon header: timestamp after d - %d", timestamp);
+    // log_debug("nan parse beacon header: timestamp after le - %le", timestamp);
+    log_debug("nan parse beacon header: timestamp after lld - %lld", timestamp);
     read_le16(frame, &beacon_interval);
     read_le16(frame, &capability);
     read_u8(frame, &element_id);

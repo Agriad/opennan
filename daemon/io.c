@@ -360,17 +360,15 @@ void io_state_free(struct io_state *state)
 
 int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
 {
-    // struct buf buf = buffer;
-    // struct nan_beacon_frame &beacon_header = (buf + 0x23);
     uint8_t address_difference = 35;
     uint8_t *first_address = *buffer;
-    // struct nan_beacon_frame beacon_header = *(first_address + address_difference);
     uint8_t math_output = (first_address + address_difference);
     log_debug("wlan send: buffer stuff - %x", buffer);
     log_debug("wlan send: first address - %x", first_address);
     log_debug("wlan send: address difference - %x", address_difference);
     log_debug("wlan send: nothing - %x", math_output);
     log_debug("wlan send: address - %x", &math_output);
+    log_debug("wlan send: address math - %x", buffer + address_difference);
 
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame*) (buffer + address_difference);
     log_debug("wlan send: time stamp - %lld", beacon_header -> time_stamp);

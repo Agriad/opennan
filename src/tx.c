@@ -250,7 +250,8 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
     beacon_header->time_stamp = htole64(synced_time);
     // beacon_header->time_stamp = 252645135;
     beacon_header->capability = htole16(0x0420);
-    beacon_header->element_id = 0xdd;
+    // beacon_header->element_id = 0xdd;
+    beacon_header->element_id = 0xff;
     beacon_header->length = 4;
     beacon_header->oui = NAN_OUI;
     beacon_header->oui_type = NAN_OUI_TYPE_BEACON;
