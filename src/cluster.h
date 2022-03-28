@@ -19,4 +19,6 @@ int nan_cluster_compare_grade(uint8_t master_preferenceA, uint64_t timestampA,
 
 uint64_t nan_calculate_cluster_grade(uint8_t master_preference, uint64_t timestamp);
 
+double U64ToDoubleConverter(uint64_t val);
+
 #endif // NAN_CLUSTER_H_
