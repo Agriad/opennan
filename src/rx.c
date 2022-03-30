@@ -371,6 +371,10 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
               nan_beacon_type_to_string(beacon_type),
               ether_addr_to_string(cluster_id));
 
+    log_debug("nan_beacon: received %s beacon from cluster %s",
+              nan_beacon_type_to_string(beacon_type),
+              ether_addr_to_string(cluster_id));
+
     struct nan_peer *peer = NULL;
     enum peer_status peer_status = nan_peer_add(&state->peers, peer_address, cluster_id, now_usec);
     if (peer_status < 0)

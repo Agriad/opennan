@@ -175,6 +175,7 @@ void nan_send_buffered_frames(struct daemon_state *state)
     {
         int length = buf_position(buf);
         log_trace("Send buffered frame of length %d", length);
+        log_debug("Send buffered frame of length %d", length);
         int err = wlan_send(&state->io_state, buf_data(buf), length);
 
         buf_free(buf);
@@ -193,6 +194,7 @@ void nan_send_service_discovery_frame(struct daemon_state *state)
         nan_build_service_discovery_frame(buf, &state->nan_state, &NAN_NETWORK_ID, announced_services);
 
         int length = buf_position(buf);
+        log_trace("nan send service discovery frame: %d", length);
         int err = wlan_send(&state->io_state, buf_data(buf), length);
 
         log_trace("Send service discovery frame for services:");
