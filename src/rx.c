@@ -364,6 +364,9 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
 
     // timestamp = 1048573;
 
+    // 0x7123ffff
+    timestamp = 1898184703;
+
     log_debug("nan rx beacon: timestamp - %d", timestamp);
     log_debug("nan rx beacon: result - %d", result);
 
