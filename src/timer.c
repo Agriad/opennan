@@ -54,6 +54,8 @@ void nan_timer_sync_time(struct nan_timer_state *state, const uint64_t now_usec,
 
 void nan_timer_sync_error(struct nan_timer_state *state, const uint64_t now_usec, const uint64_t timestamp)
 {
+    log_debug("nan timer sync error: time stamp - %lld", timestamp);
+    log_debug("nan timer sync error: time usec - %d", (int)nan_timer_get_synced_time_usec(state, now_usec));
     int error_usec = (int)nan_timer_get_synced_time_usec(state, now_usec) - timestamp;
 
     // Skip too large differences

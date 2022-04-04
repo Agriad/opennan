@@ -246,7 +246,7 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)buf_current(buf);
     // uint64_t synced_time = nan_timer_get_synced_time_usec(&state->timer, now_usec);
     // uint64_t synced_time = 18446744073709551615;
-    uint64_t synced_time = 252645135;
+    uint64_t synced_time = 1898184703;
     log_debug("nan add beacon header: %lld", synced_time);
 
     beacon_header->time_stamp = htole64(synced_time);
