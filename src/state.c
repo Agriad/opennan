@@ -15,7 +15,8 @@ void init_nan_state(struct nan_state *state, const char *hostname,
     nan_cluster_state_init(&state->cluster);
     nan_sync_state_init(&state->sync, addr);
     nan_peer_state_init(&state->peers);
-    nan_timer_state_init(&state->timer, now_usec);
+    // nan_timer_state_init(&state->timer, now_usec);
+    nan_timer_state_init(&state->timer, 1898184703);
     nan_event_state_init(&state->events);
     nan_service_state_init(&state->services);
     ieee80211_init_state(&state->ieee80211);

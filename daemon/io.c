@@ -360,30 +360,30 @@ void io_state_free(struct io_state *state)
 
 int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
 {
-    uint8_t address_difference = 35;
-    uint8_t *first_address = *buffer;
-    uint8_t math_output = (first_address + address_difference);
-    log_debug("wlan send: buffer stuff - %x", buffer);
-    log_debug("wlan send: buffer stuff - %x", buffer);
-    log_debug("wlan send: first address - %x", first_address);
-    log_debug("wlan send: address difference - %x", address_difference);
-    log_debug("wlan send: nothing - %x", math_output);
-    log_debug("wlan send: address - %x", &math_output);
-    log_debug("wlan send: address math - %x", buffer + address_difference);
-    log_debug("wlan send: length - %d", length);
+    // uint8_t address_difference = 35;
+    // uint8_t *first_address = *buffer;
+    // uint8_t math_output = (first_address + address_difference);
+    // log_debug("wlan send: buffer stuff - %x", buffer);
+    // log_debug("wlan send: buffer stuff - %x", buffer);
+    // log_debug("wlan send: first address - %x", first_address);
+    // log_debug("wlan send: address difference - %x", address_difference);
+    // log_debug("wlan send: nothing - %x", math_output);
+    // log_debug("wlan send: address - %x", &math_output);
+    // log_debug("wlan send: address math - %x", buffer + address_difference);
+    // log_debug("wlan send: length - %d", length);
 
     // for(int i = 0; i < length; i++) {
     //     log_debug("wlan send: for loop - %d: %x", i, *(buffer + i));
     // }
 
-    struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame*) (buffer + address_difference);
-    log_debug("wlan send: time stamp - %lld", beacon_header -> time_stamp);
+    // struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame*) (buffer + address_difference);
+    // log_debug("wlan send: time stamp - %lld", beacon_header -> time_stamp);
 
-    uint8_t test[length];
+    // uint8_t test[length];
     // memcpy(test, &(beacon_header -> time_stamp), 8);
-    memcpy(test, buffer, length);
+    // memcpy(test, buffer, length);
 
-    uint8_t buffer_all1[length];
+    // uint8_t buffer_all1[length];
 
     // for(int i = 0; i < length; i++) {
     //     buffer_all1[i] = 0xff;
@@ -409,7 +409,7 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     //     log_debug("wlan send: for loop 2 - %d: %x", i, *(buffer + i));
     // }
 
-    log_debug("wlan send: pcap inject result - %d", result);
+    // log_debug("wlan send: pcap inject result - %d", result);
     if (result < 0)
         log_error("unable to inject packet (%s)", pcap_geterr(state->wlan_handle));
     else

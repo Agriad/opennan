@@ -102,37 +102,37 @@ static void dump_frame(const char *dump_file, const struct pcap_pkthdr *header, 
 
 void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint64_t now_usec)
 {
-    log_debug("nan send beacon: sending beacon");
+    // log_debug("nan send beacon: sending beacon");
 
     struct buf *buf = buf_new_owned(BUF_MAX_LENGTH);
-    log_debug("nan send beacon: buf - %s", buf);
+    // log_debug("nan send beacon: buf - %s", buf);
 
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)(buf_current(buf));
     int buf_address = buf_current(buf);
-    log_debug("nan send beacon: buf current - %x", buf_current(buf));
-    log_debug("nan send beacon: buf current math - %x", buf_current(buf));
-    log_debug("nan send beacon: beacon header time stamp - %lld", beacon_header -> time_stamp);
+    // log_debug("nan send beacon: buf current - %x", buf_current(buf));
+    // log_debug("nan send beacon: buf current math - %x", buf_current(buf));
+    // log_debug("nan send beacon: beacon header time stamp - %lld", beacon_header -> time_stamp);
 
     nan_build_beacon_frame(buf, &state->nan_state, type, now_usec);
 
     // struct nan_beacon_frame *beacon_header1 = (struct nan_beacon_frame *)(buf_current(buf) - (0x5 + 0x12 + 0x10));
-    int buf_address_new = buf_current(buf);
-    int buf_address_difference = buf_address_new - buf_address;
-    log_debug("nan send beacon: buf address difference - %x", buf_address_difference);
-    struct nan_beacon_frame *beacon_header1 = (struct nan_beacon_frame *)(buf_current(buf) - (0x4e));
-    log_debug("nan send beacon: buf current 1 - %x", buf_current(buf));
-    log_debug("nan send beacon: buf current math 1 - %x", buf_current(buf) - (0x4e));
-    log_debug("nan send beacon: beacon header time stamp 1 - %lld", beacon_header1 -> time_stamp);
+    // int buf_address_new = buf_current(buf);
+    // int buf_address_difference = buf_address_new - buf_address;
+    // log_debug("nan send beacon: buf address difference - %x", buf_address_difference);
+    // struct nan_beacon_frame *beacon_header1 = (struct nan_beacon_frame *)(buf_current(buf) - (0x4e));
+    // log_debug("nan send beacon: buf current 1 - %x", buf_current(buf));
+    // log_debug("nan send beacon: buf current math 1 - %x", buf_current(buf) - (0x4e));
+    // log_debug("nan send beacon: beacon header time stamp 1 - %lld", beacon_header1 -> time_stamp);
 
-    struct nan_beacon_frame *beacon_header2 = (struct nan_beacon_frame *)(buf_current(buf) - buf_address_difference);
-    log_debug("nan send beacon: buf current 2 - %x", buf_current(buf));
-    log_debug("nan send beacon: buf current math 2 - %x", buf_current(buf) - buf_address_difference);
-    log_debug("nan send beacon: beacon header time stamp 2 - %lld", beacon_header2 -> time_stamp);
+    // struct nan_beacon_frame *beacon_header2 = (struct nan_beacon_frame *)(buf_current(buf) - buf_address_difference);
+    // log_debug("nan send beacon: buf current 2 - %x", buf_current(buf));
+    // log_debug("nan send beacon: buf current math 2 - %x", buf_current(buf) - buf_address_difference);
+    // log_debug("nan send beacon: beacon header time stamp 2 - %lld", beacon_header2 -> time_stamp);
 
-    struct nan_beacon_frame *beacon_header3 = (struct nan_beacon_frame *)(buf_current(buf) - 0x2b);
-    log_debug("nan send beacon: buf current 3 - %x", buf_current(buf));
-    log_debug("nan send beacon: buf current math 3 - %x", buf_current(buf) - 0x2b);
-    log_debug("nan send beacon: beacon header time stamp 3 - %lld", beacon_header3 -> time_stamp);
+    // struct nan_beacon_frame *beacon_header3 = (struct nan_beacon_frame *)(buf_current(buf) - 0x2b);
+    // log_debug("nan send beacon: buf current 3 - %x", buf_current(buf));
+    // log_debug("nan send beacon: buf current math 3 - %x", buf_current(buf) - 0x2b);
+    // log_debug("nan send beacon: beacon header time stamp 3 - %lld", beacon_header3 -> time_stamp);
 
     if (buf_error(buf) < 0)
     {
@@ -141,12 +141,12 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
     }
 
     int length = buf_position(buf);
-    log_trace("Send %s beacon of length %d", nan_beacon_type_to_string(type), length);
-    log_debug("Send %s beacon of length %d", nan_beacon_type_to_string(type), length);
-    log_debug("nan send beacon: buf data - %d", buf_data(buf));
-    log_debug("nan send beacon: buf data hex - %x", buf_data(buf));
-    log_debug("nan send beacon: buf data lld - %lld", buf_data(buf));
-    log_debug("nan send beacon: state io state - %s", &state -> io_state);
+    // log_trace("Send %s beacon of length %d", nan_beacon_type_to_string(type), length);
+    // log_debug("Send %s beacon of length %d", nan_beacon_type_to_string(type), length);
+    // log_debug("nan send beacon: buf data - %d", buf_data(buf));
+    // log_debug("nan send beacon: buf data hex - %x", buf_data(buf));
+    // log_debug("nan send beacon: buf data lld - %lld", buf_data(buf));
+    // log_debug("nan send beacon: state io state - %s", &state -> io_state);
     int err = wlan_send(&state->io_state, buf_data(buf), length);
     if (err < 0)
         log_error("Could not send frame: %d", err);
@@ -266,7 +266,7 @@ void nan_clean_peers(struct ev_loop *loop, ev_timer *timer, int revents)
 void nan_receive_frame(uint8_t *user, const struct pcap_pkthdr *header, const uint8_t *buf)
 {
     log_trace("Received frame of length %d", header->caplen);
-    log_debug("Received frame of length %d", header->caplen);
+    // log_debug("Received frame of length %d", header->caplen);
     struct daemon_state *state = (void *)user;
     struct buf *frame = buf_new_const(buf, header->caplen);
 
