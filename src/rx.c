@@ -640,10 +640,20 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     const struct ether_addr *cluster_id = &ieee80211->addr3;
     uint16_t frame_control = le16toh(ieee80211->frame_control);
 
-    log_debug("nan rx: self address - %s", ether_ntoa(&state->self_address));
+    log_debug("nan rx: self address - %s", ether_addr_to_string(&state->self_address));
     log_debug("nan rx: destination address - %s", ether_ntoa(&ieee80211->addr1));
-    log_debug("nan rx: source address - %s", ether_ntoa(&ieee80211->addr2));
+    log_debug("nan rx: source address - %s", ether_addr_to_string(&ieee80211->addr2));
     log_debug("nan rx: cluster id - %s", ether_ntoa(&ieee80211->addr3));
+
+    // uint8_t test_addr = 281474976710655;
+    // uint8_t test_addr = 255;
+    uint8_t test_addr[6] = {255, 255, 255, 255, 255, 255};
+    // uint8_t test_addr[6] = {0, 0, 0, 0, 0, 0};
+    const struct ether_addr *something = test_addr;
+
+    log_debug("nan rx: test address 1 - %s", ether_ntoa(&something));
+    log_debug("nan rx: test address 2 - %s", ether_addr_to_string(&something));
+    log_debug("nan rx: test address 3 - %s", ether_addr_to_string((const struct ether_addr *) test_addr));
 
     // for(int i = 0; i < 6; i++) {
     //     log_debug("nan rx: self address - %s", (&state->self_address) + i);
@@ -653,7 +663,8 @@ int nan_rx(struct buf *frame, struct nan_state *state)
         log_debug("nan rx: self address - %lld", &state->self_address);
         return RX_IGNORE_FROM_SELF;
 
-    
+    // if (ether_addr_equal(source_address, &state->self_address))
+    //     return RX_IGNORE_FROM_CERTAIN_USER;
 
     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
         return RX_TOO_SHORT;
