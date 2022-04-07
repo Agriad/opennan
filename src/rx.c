@@ -20,6 +20,8 @@ const char *nan_rx_result_to_string(const int result)
 {
     switch (result)
     {
+    case RX_IGNORE_FROM_CERTAIN_USER:
+        return "ignore from certain user";
     case RX_IGNORE_SYNC_OUTSIDE_DW:
         return "ignore sync beacon outside dw";
     case RX_IGNORE_OUI:
@@ -638,8 +640,20 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     const struct ether_addr *cluster_id = &ieee80211->addr3;
     uint16_t frame_control = le16toh(ieee80211->frame_control);
 
+    log_debug("nan rx: self address - %s", ether_ntoa(&state->self_address));
+    log_debug("nan rx: destination address - %s", ether_ntoa(&ieee80211->addr1));
+    log_debug("nan rx: source address - %s", ether_ntoa(&ieee80211->addr2));
+    log_debug("nan rx: cluster id - %s", ether_ntoa(&ieee80211->addr3));
+
+    // for(int i = 0; i < 6; i++) {
+    //     log_debug("nan rx: self address - %s", (&state->self_address) + i);
+    // }
+
     if (ether_addr_equal(source_address, &state->self_address))
+        log_debug("nan rx: self address - %lld", &state->self_address);
         return RX_IGNORE_FROM_SELF;
+
+    
 
     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
         return RX_TOO_SHORT;
