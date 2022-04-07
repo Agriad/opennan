@@ -601,27 +601,31 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
     const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
 
-    if (ether_addr_equal(source_address, other_opennan_ether_addr_struct))
-        log_debug("nan rx: ignore other opennan");
-        return RX_IGNORE_FROM_CERTAIN_USER;
-
-    if (ether_addr_equal(source_address, &state->self_address))
+    if (ether_addr_equal(source_address, &state->self_address)) {
         log_debug("nan rx: from myself");
         return RX_IGNORE_FROM_SELF;
+    }
 
-    if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
+    if (ether_addr_equal(source_address, other_opennan_ether_addr_struct)){
+        log_debug("nan rx: found frame from 00C0CAAE6579");
+
+        if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
         return RX_TOO_SHORT;
 
-    switch (frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE))
-    {
-    case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON:
-        return nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
-    case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION:
-        log_trace("Received action frame");
-        return nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
-    default:
-        log_trace("ieee80211: cannot handle type %x and subtype %x of received frame from %s",
-                  frame_control & IEEE80211_FCTL_FTYPE, frame_control & IEEE80211_FCTL_STYPE, ether_addr_to_string(source_address));
-        return RX_UNEXPECTED_TYPE;
+        switch (frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE))
+        {
+        case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON:
+            return nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
+        case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION:
+            log_trace("Received action frame");
+            return nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
+        default:
+            log_trace("ieee80211: cannot handle type %x and subtype %x of received frame from %s",
+                    frame_control & IEEE80211_FCTL_FTYPE, frame_control & IEEE80211_FCTL_STYPE, ether_addr_to_string(source_address));
+            return RX_UNEXPECTED_TYPE;
+        }
+    } 
+    else {
+        return RX_IGNORE_FROM_CERTAIN_USER;
     }
 }
