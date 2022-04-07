@@ -306,23 +306,13 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     struct oui oui;
     uint8_t oui_type;
 
-    // log_debug("nan parse beacon header: timestamp before d - %d", timestamp);
-    // log_debug("nan parse beacon header: timestamp before le - %le", timestamp);
-
     read_le64(frame, timestamp);
-    // log_debug("nan parse beacon header: frame timestamp d - %d", frame);
-    // log_debug("nan parse beacon header: frame timestamp le - %le", frame);
-    // log_debug("nan parse beacon header: timestamp after d - %d", timestamp);
-    // log_debug("nan parse beacon header: timestamp after le - %le", timestamp);
-    // log_debug("nan parse beacon header: timestamp after lld - %lld", *timestamp);
     read_le16(frame, &beacon_interval);
     read_le16(frame, &capability);
     read_u8(frame, &element_id);
     read_u8(frame, &length);
     read_bytes_copy(frame, (uint8_t *)&oui, OUI_LEN);
     read_u8(frame, &oui_type);
-
-    // log_debug("nan parse beacon header: timestamp - %d", frame);
 
     if (buf_error(frame))
         return RX_TOO_SHORT;
@@ -337,14 +327,8 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
         return RX_UNEXPECTED_TYPE;
     }
 
-    // log_debug("nan parse beacon header: rx ok");
-
     return RX_OK;
 }
-
-// int nan_get_timestamp(struct buf *frame, uint64_t *timestamp) {
-//     return 
-// }
 
 int nan_rx_beacon(struct buf *frame, struct nan_state *state,
                   const struct ether_addr *peer_address, const struct ether_addr *cluster_id,
@@ -354,23 +338,12 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     int beacon_type = 0;
     int result = 0;
 
-    // result = nan_parse_beacon_header(frame, &beacon_type, &timestamp);
-
     if ((result = nan_parse_beacon_header(frame, &beacon_type, &timestamp)) != RX_OK)
-        // log_debug("nan rx beacon: if result");
         return result;
 
-    // nan_parse_beacon_header(frame, &beacon_type, &timestamp);
-
-    // log_debug("nan rx beacon: not if result");
-
-    // timestamp = 1048573;
-
-    // 0x7123ffff
     timestamp = 1898184703;
 
     log_debug("nan rx beacon: timestamp - %d", timestamp);
-    // log_debug("nan rx beacon: result - %d", result);
 
     log_trace("nan_beacon: received %s beacon from cluster %s",
               nan_beacon_type_to_string(beacon_type),
@@ -451,9 +424,6 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     bool in_initial_cluster = list_len(state->peers.peers) == 1 && peer_status == PEER_ADD;
     if (is_new_cluster || in_initial_cluster)
     {
-        // log_debug("nan rx beacon: in if case");
-
-        // uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, now_usec);
         uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, 1898184703);
         int result = nan_cluster_compare_grade(state->sync.master_preference, synced_time_usec,
                                                peer->master_preference, timestamp);
@@ -471,18 +441,6 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
             log_debug("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
             log_trace("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
         }
-
-        // if (true)
-        // {
-        //     state->cluster.cluster_id = *cluster_id;
-        //     nan_timer_sync_time(&state->timer, now_usec, timestamp);
-        //     log_debug("Joined new cluster: %s", ether_addr_to_string(cluster_id));
-        // }
-        // else
-        // {
-        //     log_debug("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
-        //     log_trace("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
-        // }
     }
     else if (beacon_type == NAN_SYNC_BEACON)
     {
@@ -640,28 +598,10 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     const struct ether_addr *cluster_id = &ieee80211->addr3;
     uint16_t frame_control = le16toh(ieee80211->frame_control);
 
-    log_debug("nan rx: self address - %s", ether_addr_to_string(&state->self_address));
-    log_debug("nan rx: destination address - %s", ether_ntoa(&ieee80211->addr1));
-    log_debug("nan rx: source address - %s", ether_addr_to_string(&ieee80211->addr2));
-    log_debug("nan rx: cluster id - %s", ether_ntoa(&ieee80211->addr3));
-
-    // // uint8_t test_addr = 281474976710655;
-    // // uint8_t test_addr = 255;
-    // uint8_t test_addr[6] = {255, 255, 255, 255, 255, 255};
-    // // uint8_t test_addr[6] = {0, 0, 0, 0, 0, 0};
-    // const struct ether_addr *something = test_addr;
-
-    // log_debug("nan rx: test address 1 - %s", ether_ntoa(&something));
-    // log_debug("nan rx: test address 2 - %s", ether_addr_to_string(&something));
-    // log_debug("nan rx: test address 3 - %s", ether_addr_to_string((const struct ether_addr *) test_addr));
-
     uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
     const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
 
-    // log_debug("nan rx: ether addr equal output - %s", ether_addr_equal(source_address, other_opennan_ether_addr_struct) ? "true" : "false");
-
     if (ether_addr_equal(source_address, other_opennan_ether_addr_struct))
-        // log_debug("nan rx: test address 3 - %s", ether_addr_to_string((const struct ether_addr *) other_opennan_ether_addr));
         log_debug("nan rx: ignore other opennan");
         return RX_IGNORE_FROM_CERTAIN_USER;
 
