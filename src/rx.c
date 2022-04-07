@@ -645,26 +645,29 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     log_debug("nan rx: source address - %s", ether_addr_to_string(&ieee80211->addr2));
     log_debug("nan rx: cluster id - %s", ether_ntoa(&ieee80211->addr3));
 
-    // uint8_t test_addr = 281474976710655;
-    // uint8_t test_addr = 255;
-    uint8_t test_addr[6] = {255, 255, 255, 255, 255, 255};
-    // uint8_t test_addr[6] = {0, 0, 0, 0, 0, 0};
-    const struct ether_addr *something = test_addr;
+    // // uint8_t test_addr = 281474976710655;
+    // // uint8_t test_addr = 255;
+    // uint8_t test_addr[6] = {255, 255, 255, 255, 255, 255};
+    // // uint8_t test_addr[6] = {0, 0, 0, 0, 0, 0};
+    // const struct ether_addr *something = test_addr;
 
-    log_debug("nan rx: test address 1 - %s", ether_ntoa(&something));
-    log_debug("nan rx: test address 2 - %s", ether_addr_to_string(&something));
-    log_debug("nan rx: test address 3 - %s", ether_addr_to_string((const struct ether_addr *) test_addr));
+    // log_debug("nan rx: test address 1 - %s", ether_ntoa(&something));
+    // log_debug("nan rx: test address 2 - %s", ether_addr_to_string(&something));
+    // log_debug("nan rx: test address 3 - %s", ether_addr_to_string((const struct ether_addr *) test_addr));
 
-    // for(int i = 0; i < 6; i++) {
-    //     log_debug("nan rx: self address - %s", (&state->self_address) + i);
-    // }
+    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
+    const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
+
+    // log_debug("nan rx: ether addr equal output - %s", ether_addr_equal(source_address, other_opennan_ether_addr_struct) ? "true" : "false");
+
+    if (ether_addr_equal(source_address, other_opennan_ether_addr_struct))
+        // log_debug("nan rx: test address 3 - %s", ether_addr_to_string((const struct ether_addr *) other_opennan_ether_addr));
+        log_debug("nan rx: ignore other opennan");
+        return RX_IGNORE_FROM_CERTAIN_USER;
 
     if (ether_addr_equal(source_address, &state->self_address))
-        log_debug("nan rx: self address - %lld", &state->self_address);
+        log_debug("nan rx: from myself");
         return RX_IGNORE_FROM_SELF;
-
-    // if (ether_addr_equal(source_address, &state->self_address))
-    //     return RX_IGNORE_FROM_CERTAIN_USER;
 
     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
         return RX_TOO_SHORT;

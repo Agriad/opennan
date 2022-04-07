@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "log.h"
 
 void print_frame(const uint8_t *frame, const size_t length, FILE *fp)
 {
@@ -78,6 +79,9 @@ bool ether_addr_equal(const struct ether_addr *addrA, const struct ether_addr *a
     {
         if (addrA->ether_addr_octet[i] != addrB->ether_addr_octet[i])
             return false;
+
+        // log_debug("ether addr equal: addr A %i - %x", i, addrA->ether_addr_octet[i]);
+        // log_debug("ether addr equal: addr B %i - %x", i, addrB->ether_addr_octet[i]);
     }
     return true;
 }
