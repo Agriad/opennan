@@ -108,7 +108,7 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)(buf_current(buf));
     int buf_address = buf_current(buf);
 
-    nan_build_beacon_frame(buf, &state->nan_state, type, now_usec);
+    nan_build_beacon_frame(buf, &state->nan_state, type, now_usec, 0);
 
     if (buf_error(buf) < 0)
     {
@@ -127,7 +127,7 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)(buf_current(buf1));
     int buf_address1 = buf_current(buf1);
 
-    nan_build_beacon_frame(buf1, &state->nan_state, type, now_usec);
+    nan_build_beacon_frame(buf1, &state->nan_state, type, now_usec, 1);
 
     if (buf_error(buf1) < 0)
     {

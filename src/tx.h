@@ -80,10 +80,11 @@ void nan_add_service_discovery_header(struct buf *buf, struct nan_state *state, 
  * @oaram state - The current state
  * @param type - The type of beacon to build
  * @param now_usec - The current time in microseconds
+ * @param operation  - The flag for normal or adversarial action
  * @returns The length of the written frame in bytes
  */
 void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
-                            const enum nan_beacon_type type, const uint64_t now_usec);
+                            const enum nan_beacon_type type, const uint64_t now_usec, int operation);
 
 void nan_build_service_discovery_frame(struct buf *buf, struct nan_state *state,
                                        const struct ether_addr *destination, const list_t announced_services);

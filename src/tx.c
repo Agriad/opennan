@@ -259,20 +259,39 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
 }
 
 void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
-                            const enum nan_beacon_type type, const uint64_t now_usec)
+                            const enum nan_beacon_type type, const uint64_t now_usec, int operation)
 {
-    uint8_t *data_length;
-    nan_add_beacon_header(buf, state, type, &data_length, now_usec);
+    // if to attack
+    if (operation == 1) 
+    {
+        uint8_t *data_length;
+        nan_add_beacon_header(buf, state, type, &data_length, now_usec);
 
-    uint8_t attributes_length = 0;
-    attributes_length += nan_add_master_indication_attribute(buf, state);
+        uint8_t attributes_length = 0;
+        attributes_length += nan_add_master_indication_attribute(buf, state);
 
-    attributes_length += nan_add_cluster_attribute(buf, state);
+        attributes_length += nan_add_cluster_attribute(buf, state);
 
-    *data_length += attributes_length;
+        *data_length += attributes_length;
 
-    if (state->ieee80211.fcs)
-        ieee80211_add_fcs(buf);
+        if (state->ieee80211.fcs)
+            ieee80211_add_fcs(buf);
+    }
+    else 
+    {
+        uint8_t *data_length;
+        nan_add_beacon_header(buf, state, type, &data_length, now_usec);
+
+        uint8_t attributes_length = 0;
+        attributes_length += nan_add_master_indication_attribute(buf, state);
+
+        attributes_length += nan_add_cluster_attribute(buf, state);
+
+        *data_length += attributes_length;
+
+        if (state->ieee80211.fcs)
+            ieee80211_add_fcs(buf);
+    }
 }
 
 void nan_add_service_discovery_header(struct buf *buf, struct nan_state *state, const struct ether_addr *destination)
