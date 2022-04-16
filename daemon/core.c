@@ -124,7 +124,7 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
     // targeted anchor master message
     struct buf *buf1 = buf_new_owned(BUF_MAX_LENGTH);
 
-    struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)(buf_current(buf1));
+    struct nan_beacon_frame *beacon_header1 = (struct nan_beacon_frame *)(buf_current(buf1));
     int buf_address1 = buf_current(buf1);
 
     nan_build_beacon_frame(buf1, &state->nan_state, type, now_usec, 1);

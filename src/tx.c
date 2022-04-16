@@ -275,8 +275,6 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
     }
     else
     {
-        const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
-        
         ieee80211_add_radiotap_header(buf, &state->ieee80211);
         ieee80211_add_nan_header(buf, &state->interface_address, &NAN_BROADCAST_ADDRESS, &state->cluster.cluster_id,
                                  &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
