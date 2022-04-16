@@ -23,9 +23,10 @@ bool nan_can_send_discovery_beacon(const struct nan_state *state, uint64_t now_u
  * 
  * @param buf - The buffer to write to
  * @param state - The current state
+ * @param operation - Whether it is normal operation or not
  * @returns The data of the written attribute in bytes
  */
-int nan_add_master_indication_attribute(struct buf *buf, const struct nan_state *state);
+int nan_add_master_indication_attribute(struct buf *buf, const struct nan_state *state, int operation);
 
 /**
  * Add a cluster attribute to the given buffer.
@@ -66,10 +67,11 @@ int nan_add_data_path_attribute(struct buf *buf, const struct nan_data_path *dat
  * @param type - The type of beacon to add
  * @param data_length - Will be filled with a pointer to the header's length field
  * @param now_usec - Current time in microseconds
+ * @param operation - If the operation is normal or not
  * @returns The length of the written header in bytes
  */
 void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum nan_beacon_type type,
-                           uint8_t **data_length, const uint64_t now_usec);
+                           uint8_t **data_length, const uint64_t now_usec, int operation);
 
 void nan_add_service_discovery_header(struct buf *buf, struct nan_state *state, const struct ether_addr *destination);
 

@@ -21,17 +21,32 @@ bool nan_can_send_discovery_beacon(const struct nan_state *state, uint64_t now_u
     return nan_timer_can_send_discovery_beacon(&state->timer, now_usec);
 }
 
-int nan_add_master_indication_attribute(struct buf *buf, const struct nan_state *state)
+int nan_add_master_indication_attribute(struct buf *buf, const struct nan_state *state, int operation)
 {
-    struct nan_master_indication_attribute *attribute = (struct nan_master_indication_attribute *)buf_current(buf);
-    attribute->id = MASTER_INDICATION_ATTRIBUTE;
-    attribute->length = htole32(2);
-    attribute->master_preference = state->sync.master_preference;
-    attribute->random_factor = state->sync.random_factor;
+    if (operation == 1)
+    {
+        struct nan_master_indication_attribute *attribute = (struct nan_master_indication_attribute *)buf_current(buf);
+        attribute->id = MASTER_INDICATION_ATTRIBUTE;
+        attribute->length = htole32(2);
+        attribute->master_preference = 254;
+        attribute->random_factor = state->sync.random_factor;
 
-    buf_advance(buf, sizeof(struct nan_master_indication_attribute));
+        buf_advance(buf, sizeof(struct nan_master_indication_attribute));
 
-    return sizeof(struct nan_master_indication_attribute);
+        return sizeof(struct nan_master_indication_attribute);
+    }
+    else
+    {
+        struct nan_master_indication_attribute *attribute = (struct nan_master_indication_attribute *)buf_current(buf);
+        attribute->id = MASTER_INDICATION_ATTRIBUTE;
+        attribute->length = htole32(2);
+        attribute->master_preference = state->sync.master_preference;
+        attribute->random_factor = state->sync.random_factor;
+
+        buf_advance(buf, sizeof(struct nan_master_indication_attribute));
+
+        return sizeof(struct nan_master_indication_attribute);
+    }
 }
 
 int nan_add_cluster_attribute(struct buf *buf, const struct nan_state *state)
@@ -226,36 +241,66 @@ int nan_add_data_path_attribute(struct buf *buf, const struct nan_data_path *dat
 }
 
 void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum nan_beacon_type type,
-                           uint8_t **data_length, const uint64_t now_usec)
+                           uint8_t **data_length, const uint64_t now_usec, int operation)
 {
-    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
-    const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
-    
-    ieee80211_add_radiotap_header(buf, &state->ieee80211);
-    // ieee80211_add_nan_header(buf, &state->interface_address, &NAN_BROADCAST_ADDRESS, &state->cluster.cluster_id,
-    //                          &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
-    ieee80211_add_nan_header(buf, &state->interface_address, other_opennan_ether_addr_struct, &state->cluster.cluster_id,
-                             &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
+    // check whether normal operation or not
+    if (operation == 1)
+    {
+        uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x47};
+        const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
+        
+        ieee80211_add_radiotap_header(buf, &state->ieee80211);
+        ieee80211_add_nan_header(buf, &state->interface_address, other_opennan_ether_addr_struct, &state->cluster.cluster_id,
+                                &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
 
-    struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)buf_current(buf);
-    // uint64_t synced_time = nan_timer_get_synced_time_usec(&state->timer, now_usec);
-    uint64_t synced_time = 1898184703;
+        struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)buf_current(buf);
+        // uint64_t synced_time = nan_timer_get_synced_time_usec(&state->timer, now_usec);
+        uint64_t synced_time = 1898184703;
 
-    beacon_header->time_stamp = htole64(synced_time);
-    beacon_header->capability = htole16(0x0420);
-    beacon_header->element_id = 0xff;
-    beacon_header->length = 4;
-    beacon_header->oui = NAN_OUI;
-    beacon_header->oui_type = NAN_OUI_TYPE_BEACON;
+        beacon_header->time_stamp = htole64(synced_time);
+        beacon_header->capability = htole16(0x0420);
+        beacon_header->element_id = 0xff;
+        beacon_header->length = 4;
+        beacon_header->oui = NAN_OUI;
+        beacon_header->oui_type = NAN_OUI_TYPE_BEACON;
 
-    if (type == NAN_SYNC_BEACON)
-        beacon_header->beacon_interval = NAN_SYNC_BEACON_INTERVAL_TU;
+        if (type == NAN_SYNC_BEACON)
+            beacon_header->beacon_interval = NAN_SYNC_BEACON_INTERVAL_TU;
+        else
+            beacon_header->beacon_interval = NAN_DISCOVERY_BEACON_INTERVAL_TU;
+
+        *data_length = &beacon_header->length;
+
+        buf_advance(buf, sizeof(struct nan_beacon_frame));
+    }
     else
-        beacon_header->beacon_interval = NAN_DISCOVERY_BEACON_INTERVAL_TU;
+    {
+        const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
+        
+        ieee80211_add_radiotap_header(buf, &state->ieee80211);
+        ieee80211_add_nan_header(buf, &state->interface_address, &NAN_BROADCAST_ADDRESS, &state->cluster.cluster_id,
+                                 &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
 
-    *data_length = &beacon_header->length;
+        struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)buf_current(buf);
+        // uint64_t synced_time = nan_timer_get_synced_time_usec(&state->timer, now_usec);
+        uint64_t synced_time = 1898184703;
 
-    buf_advance(buf, sizeof(struct nan_beacon_frame));
+        beacon_header->time_stamp = htole64(synced_time);
+        beacon_header->capability = htole16(0x0420);
+        beacon_header->element_id = 0xff;
+        beacon_header->length = 4;
+        beacon_header->oui = NAN_OUI;
+        beacon_header->oui_type = NAN_OUI_TYPE_BEACON;
+
+        if (type == NAN_SYNC_BEACON)
+            beacon_header->beacon_interval = NAN_SYNC_BEACON_INTERVAL_TU;
+        else
+            beacon_header->beacon_interval = NAN_DISCOVERY_BEACON_INTERVAL_TU;
+
+        *data_length = &beacon_header->length;
+
+        buf_advance(buf, sizeof(struct nan_beacon_frame));
+    }
 }
 
 void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
@@ -265,10 +310,10 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
     if (operation == 1) 
     {
         uint8_t *data_length;
-        nan_add_beacon_header(buf, state, type, &data_length, now_usec);
+        nan_add_beacon_header(buf, state, type, &data_length, now_usec, 1);
 
         uint8_t attributes_length = 0;
-        attributes_length += nan_add_master_indication_attribute(buf, state);
+        attributes_length += nan_add_master_indication_attribute(buf, state, 1);
 
         attributes_length += nan_add_cluster_attribute(buf, state);
 
@@ -280,10 +325,10 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
     else 
     {
         uint8_t *data_length;
-        nan_add_beacon_header(buf, state, type, &data_length, now_usec);
+        nan_add_beacon_header(buf, state, type, &data_length, now_usec, 0);
 
         uint8_t attributes_length = 0;
-        attributes_length += nan_add_master_indication_attribute(buf, state);
+        attributes_length += nan_add_master_indication_attribute(buf, state, 0);
 
         attributes_length += nan_add_cluster_attribute(buf, state);
 
