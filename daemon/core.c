@@ -102,6 +102,7 @@ static void dump_frame(const char *dump_file, const struct pcap_pkthdr *header, 
 
 void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint64_t now_usec)
 {
+    // normal operation
     struct buf *buf = buf_new_owned(BUF_MAX_LENGTH);
 
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)(buf_current(buf));
@@ -119,6 +120,25 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
     int err = wlan_send(&state->io_state, buf_data(buf), length);
     if (err < 0)
         log_error("Could not send frame: %d", err);
+
+    // targeted anchor master message
+    struct buf *buf1 = buf_new_owned(BUF_MAX_LENGTH);
+
+    struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)(buf_current(buf1));
+    int buf_address1 = buf_current(buf1);
+
+    nan_build_beacon_frame(buf1, &state->nan_state, type, now_usec);
+
+    if (buf_error(buf1) < 0)
+    {
+        log_error("Could not build beacon frame: %s", nan_beacon_type_to_string(type));
+        return;
+    }
+
+    int length1 = buf_position(buf1);
+    int err1 = wlan_send(&state->io_state, buf_data(buf1), length1);
+    if (err1 < 0)
+        log_error("Could not send frame: %d", err1);
 }
 
 void nan_send_discovery_beacon(struct ev_loop *loop, ev_timer *timer, int revents)
