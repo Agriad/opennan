@@ -372,9 +372,9 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     // log_debug("wlan send: address math - %x", buffer + address_difference);
     // log_debug("wlan send: length - %d", length);
 
-    // for(int i = 0; i < length; i++) {
-    //     log_debug("wlan send: for loop - %d: %x", i, *(buffer + i));
-    // }
+    for(int i = 0; i < length; i++) {
+        log_debug("wlan send: for loop - %d: %x", i, *(buffer + i));
+    }
 
     // struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame*) (buffer + address_difference);
     // log_debug("wlan send: time stamp - %lld", beacon_header -> time_stamp);
