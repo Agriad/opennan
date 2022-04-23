@@ -363,6 +363,11 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     if (!state || !state->wlan_handle)
         return -EINVAL;
 
+    // for (int i = 0; i < length; i++)
+    // {
+    //     log_debug("wlan send: buffer %d - %x", i, *(buffer + i));
+    // }
+
     int result = pcap_inject(state->wlan_handle, buffer, length);
     if (result < 0)
         log_error("unable to inject packet (%s)", pcap_geterr(state->wlan_handle));

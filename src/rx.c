@@ -568,68 +568,6 @@ int nan_rx_action(struct buf *frame, struct nan_state *state,
     return RX_OK;
 }
 
-// int nan_rx(struct buf *frame, struct nan_state *state)
-// {
-//     signed char rssi;
-//     uint8_t flags;
-
-//     uint64_t now_usec = clock_time_usec();
-//     if (ieee80211_parse_radiotap_header(frame, &rssi, &flags, NULL /*&now_usec*/) < 0)
-//     {
-//         log_trace("radiotap: cannot parse header");
-//         return RX_UNEXPECTED_FORMAT;
-//     }
-
-//     if (ieee80211_parse_fcs(frame, flags) < 0)
-//     {
-//         log_trace("CRC failed");
-//         return RX_IGNORE_FAILED_CRC;
-//     }
-
-//     if (buf_rest(frame) < (int)sizeof(struct ieee80211_hdr))
-//     {
-//         log_trace("ieee80211: header to short");
-//         return RX_TOO_SHORT;
-//     }
-
-//     const struct ieee80211_hdr *ieee80211 = (const struct ieee80211_hdr *)buf_current(frame);
-//     const struct ether_addr *destination_address = &ieee80211->addr1;
-//     const struct ether_addr *source_address = &ieee80211->addr2;
-//     const struct ether_addr *cluster_id = &ieee80211->addr3;
-//     uint16_t frame_control = le16toh(ieee80211->frame_control);
-
-//     uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
-//     const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
-
-//     if (ether_addr_equal(source_address, &state->self_address)) {
-//         log_debug("nan rx: from myself");
-//         return RX_IGNORE_FROM_SELF;
-//     }
-
-//     if (ether_addr_equal(source_address, other_opennan_ether_addr_struct)){
-//         log_debug("nan rx: found frame from 00C0CAAE6579");
-
-//         if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
-//         return RX_TOO_SHORT;
-
-//         switch (frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE))
-//         {
-//         case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON:
-//             return nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
-//         case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION:
-//             log_trace("Received action frame");
-//             return nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
-//         default:
-//             log_trace("ieee80211: cannot handle type %x and subtype %x of received frame from %s",
-//                     frame_control & IEEE80211_FCTL_FTYPE, frame_control & IEEE80211_FCTL_STYPE, ether_addr_to_string(source_address));
-//             return RX_UNEXPECTED_TYPE;
-//         }
-//     } 
-//     else {
-//         return RX_IGNORE_FROM_CERTAIN_USER;
-//     }
-// }
-
 int nan_rx(struct buf *frame, struct nan_state *state)
 {
     signed char rssi;
@@ -660,12 +598,19 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     const struct ether_addr *cluster_id = &ieee80211->addr3;
     uint16_t frame_control = le16toh(ieee80211->frame_control);
 
+    // uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
+    uint8_t other_opennan_ether_addr[6] = {0x02, 0x0b, 0x07, 0xd8, 0xf8, 0xc5};
+    const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
+
     if (ether_addr_equal(source_address, &state->self_address)) {
         log_debug("nan rx: from myself");
         return RX_IGNORE_FROM_SELF;
     }
 
-    if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
+    if (ether_addr_equal(source_address, other_opennan_ether_addr_struct)){
+        log_debug("nan rx: found frame from 00C0CAAE6579");
+
+        if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
         return RX_TOO_SHORT;
 
         switch (frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE))
@@ -680,4 +625,60 @@ int nan_rx(struct buf *frame, struct nan_state *state)
                     frame_control & IEEE80211_FCTL_FTYPE, frame_control & IEEE80211_FCTL_STYPE, ether_addr_to_string(source_address));
             return RX_UNEXPECTED_TYPE;
         }
+    } 
+    else {
+        return RX_IGNORE_FROM_CERTAIN_USER;
+    }
 }
+
+// int nan_rx(struct buf *frame, struct nan_state *state)
+// {
+//     signed char rssi;
+//     uint8_t flags;
+
+//     uint64_t now_usec = clock_time_usec();
+//     if (ieee80211_parse_radiotap_header(frame, &rssi, &flags, NULL /*&now_usec*/) < 0)
+//     {
+//         log_trace("radiotap: cannot parse header");
+//         return RX_UNEXPECTED_FORMAT;
+//     }
+
+//     if (ieee80211_parse_fcs(frame, flags) < 0)
+//     {
+//         log_trace("CRC failed");
+//         return RX_IGNORE_FAILED_CRC;
+//     }
+
+//     if (buf_rest(frame) < (int)sizeof(struct ieee80211_hdr))
+//     {
+//         log_trace("ieee80211: header to short");
+//         return RX_TOO_SHORT;
+//     }
+
+//     const struct ieee80211_hdr *ieee80211 = (const struct ieee80211_hdr *)buf_current(frame);
+//     const struct ether_addr *destination_address = &ieee80211->addr1;
+//     const struct ether_addr *source_address = &ieee80211->addr2;
+//     const struct ether_addr *cluster_id = &ieee80211->addr3;
+//     uint16_t frame_control = le16toh(ieee80211->frame_control);
+
+//     if (ether_addr_equal(source_address, &state->self_address)) {
+//         log_debug("nan rx: from myself");
+//         return RX_IGNORE_FROM_SELF;
+//     }
+
+//     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
+//         return RX_TOO_SHORT;
+
+//         switch (frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE))
+//         {
+//         case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON:
+//             return nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
+//         case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION:
+//             log_trace("Received action frame");
+//             return nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
+//         default:
+//             log_trace("ieee80211: cannot handle type %x and subtype %x of received frame from %s",
+//                     frame_control & IEEE80211_FCTL_FTYPE, frame_control & IEEE80211_FCTL_STYPE, ether_addr_to_string(source_address));
+//             return RX_UNEXPECTED_TYPE;
+//         }
+// }

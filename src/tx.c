@@ -228,14 +228,15 @@ int nan_add_data_path_attribute(struct buf *buf, const struct nan_data_path *dat
 void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum nan_beacon_type type,
                            uint8_t **data_length, const uint64_t now_usec)
 {
-    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
+    // uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
+    // uint8_t other_opennan_ether_addr[6] = {0x02, 0x0b, 0x07, 0xd8, 0xf8, 0xc5};
     const struct ether_addr *other_opennan_ether_addr_struct = other_opennan_ether_addr;
     
     ieee80211_add_radiotap_header(buf, &state->ieee80211);
-    // ieee80211_add_nan_header(buf, &state->interface_address, &NAN_BROADCAST_ADDRESS, &state->cluster.cluster_id,
-    //                          &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
-    ieee80211_add_nan_header(buf, &state->interface_address, other_opennan_ether_addr_struct, &state->cluster.cluster_id,
-                             &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
+     ieee80211_add_nan_header(buf, &state->interface_address, &NAN_BROADCAST_ADDRESS, &state->cluster.cluster_id,
+                              &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
+    // ieee80211_add_nan_header(buf, &state->interface_address, other_opennan_ether_addr_struct, &state->cluster.cluster_id,
+    //                         &state->ieee80211, IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON);
 
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)buf_current(buf);
     // uint64_t synced_time = nan_timer_get_synced_time_usec(&state->timer, now_usec);
