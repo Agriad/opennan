@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
 
 #ifndef __APPLE__
 #include <linux/if_tun.h>
@@ -402,7 +404,28 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     if (!state || !state->wlan_handle)
         return -EINVAL;
 
-    int result = pcap_inject(state->wlan_handle, buffer, length);
+    unsigned char *hash = HMAC(EVP_sha256(), 
+        "example_key", 
+        strlen("example_key"), 
+        buffer, 
+        length,
+        NULL,
+        NULL);
+
+    int new_length = length + 32;
+
+    uint8_t new_buffer[new_length];
+
+    for(int i = 0; i < length; i++) {
+        new_buffer[i] = buffer[i];
+    }
+
+    for(int i = length; i < new_length; i++) {
+        new_buffer[i] = hash[i];
+    }
+
+    // int result = pcap_inject(state->wlan_handle, buffer, length);
+    int result = pcap_inject(state->wlan_handle, new_buffer, new_length);
     // int result1 = pcap_sendpacket(state->wlan_handle, buffer_all1, length);
     // int result = 1;
     // for(int i = 0; i < length; i++) {

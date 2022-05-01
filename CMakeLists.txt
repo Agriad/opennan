@@ -14,7 +14,4 @@ target_compile_definitions(radiotap PRIVATE -D_DEFAULT_SOURCE -DRADIOTAP_SUPPORT
 add_subdirectory(src)
 add_subdirectory(daemon)
 
-#add_subdirectory(googletest)
-#add_subdirectory(tests)
-
 install(TARGETS radiotap DESTINATION lib)
