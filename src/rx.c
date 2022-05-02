@@ -613,6 +613,13 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     signed char rssi;
     uint8_t flags;
 
+    uint8_t data = frame -> current;
+
+    for (int i = 0; i < 128; i++)
+    {
+        log_debug("nan rx: address %d - data %x\n", i, data[i]);
+    }
+
     uint64_t now_usec = clock_time_usec();
     if (ieee80211_parse_radiotap_header(frame, &rssi, &flags, NULL /*&now_usec*/) < 0)
     {

@@ -365,6 +365,15 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     if (!state || !state->wlan_handle)
         return -EINVAL;
 
+    if (length < 129)
+    {
+        length = 128;
+    }
+    else
+    {
+        length = 512;
+    }
+
     unsigned char *hash = HMAC(EVP_sha256(), 
         "example_key", 
         strlen("example_key"), 
@@ -373,7 +382,7 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
         NULL,
         NULL);
 
-    int new_length = length + 34;
+    int new_length = length + 32;
 
     uint8_t new_buffer[new_length];
 
@@ -383,16 +392,6 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
 
     for(int i = length; i < new_length - 2; i++) {
         new_buffer[i] = (uint8_t) hash[i - length];
-    }
-
-    if (length > 128) {
-        new_buffer[new_length - 2] = 128;
-        new_buffer[new_length - 1] = length - 128; 
-    }
-    else
-    {
-        new_buffer[new_length - 2] = length;
-        new_buffer[new_length - 1] = 0; 
     }
 
     int result = pcap_inject(state->wlan_handle, new_buffer, new_length);
