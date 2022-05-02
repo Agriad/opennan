@@ -404,6 +404,8 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     if (!state || !state->wlan_handle)
         return -EINVAL;
 
+    // length = 128;
+
     unsigned char *hash = HMAC(EVP_sha256(), 
         "example_key", 
         strlen("example_key"), 
@@ -412,7 +414,7 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
         NULL,
         NULL);
 
-    int new_length = length + 32;
+    int new_length = length + 34;
 
     // for(int i = 0; i < 32; i++) {
     // //    log_debug("wland send: hash address %d - hash %x\n", i, hash[i]);
@@ -432,15 +434,30 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     //     log_debug("wland send: hash address %d - hash %x\n", i, (uint8_t) hash[i]);
     // }
 
-    for(int i = length; i < new_length; i++) {
+    for(int i = length; i < new_length - 2; i++) {
         new_buffer[i] = (uint8_t) hash[i - length];
         // log_debug("wland send: buffer address %d - hash %x - hash translated %x - new buffer %x\n",
         //  i, hash[i - length], (uint8_t) hash[i - length], new_buffer[i]);
     }
 
-    // for(int i = length; i < length + 32; i++) {
-    //    log_debug("wland send: new buffer address %d - new buffer hash %x\n", i, new_buffer[i]);
-    // }
+    if (length > 128) {
+        new_buffer[new_length - 2] = 128;
+        new_buffer[new_length - 1] = length - 128; 
+    }
+    else
+    {
+        new_buffer[new_length - 2] = length;
+        new_buffer[new_length - 1] = 0; 
+    }
+
+    // new_buffer[new_length - 2] = 0;
+    // new_buffer[new_length - 1] = 0; 
+
+    log_debug("wlan send: length %d\n", length);
+
+    for(int i = 0; i < new_length; i++) {
+       log_debug("wland send: new buffer address %d - new buffer hash %x\n", i, new_buffer[i]);
+    }
 
     // int result = pcap_inject(state->wlan_handle, buffer, length);
     int result = pcap_inject(state->wlan_handle, new_buffer, new_length);
