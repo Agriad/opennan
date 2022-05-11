@@ -115,6 +115,12 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	log_debug("main: &state - %x", &state);
+	log_debug("main: wlan - %s", wlan);
+	log_debug("main: host - %s", host);
+	log_debug("main: channel - %i", channel);
+	log_debug("main: dump_file - %s", dump ? dump_file : 0);
+
 	if (nan_init(&state, wlan, host, channel, dump ? dump_file : 0) < 0)
 	{
 		log_error("could not initialize core");

@@ -16,7 +16,13 @@ struct ether_addr nan_cluster_id_new()
 
 void nan_cluster_state_init(struct nan_cluster_state *state)
 {
-    state->cluster_id = nan_cluster_id_new();
+    // 50:6f:9a:01:99:27
+    // 50:6f:9a:01:9a:61
+    struct ether_addr cluster_id = NAN_CLUSTER_ID_BASE;
+    cluster_id.ether_addr_octet[4] = 0x9a;
+    cluster_id.ether_addr_octet[5] = 0x61;
+    // state->cluster_id = nan_cluster_id_new();
+    state->cluster_id = cluster_id;
 }
 
 int nan_cluster_compare_grade(uint8_t master_preferenceA, uint64_t timestampA,

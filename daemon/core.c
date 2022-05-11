@@ -47,6 +47,11 @@ int nan_init(struct daemon_state *state, const char *wlan, const char *host, int
     if ((err = netutils_init()))
         return err;
 
+    log_debug("nan init: &state -> io_state - %s", &state->io_state);
+    log_debug("nan init: wlan - %s", wlan);
+    log_debug("nan init: host - %s", host);
+    log_debug("nan init: channel - %i", channel);
+
     if ((err = io_state_init(&state->io_state, wlan, host, channel, NULL)))
         return err;
 

@@ -632,6 +632,8 @@ int nan_rx(struct buf *frame, struct nan_state *state)
         return RX_TOO_SHORT;
     }
 
+    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x47};
+
     const struct ieee80211_hdr *ieee80211 = (const struct ieee80211_hdr *)buf_current(frame);
     const struct ether_addr *destination_address = &ieee80211->addr1;
     const struct ether_addr *source_address = &ieee80211->addr2;
@@ -640,6 +642,8 @@ int nan_rx(struct buf *frame, struct nan_state *state)
 
     if (ether_addr_equal(source_address, &state->self_address))
         return RX_IGNORE_FROM_SELF;
+    // else if (ether_addr_equal(source_address, other_opennan_ether_addr))
+    //     return RX_IGNORE_FROM_SELF;
 
     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
         return RX_TOO_SHORT;
