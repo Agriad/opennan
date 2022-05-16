@@ -526,8 +526,8 @@ int main(int argc, char *argv[])
 	bool dump = false;
 	// char *dump_file = FAILED_DUMP;
 
-	// char wlan[IFNAMSIZ] = "";
-    char wlan[IFNAMSIZ] = "wlx00c0caae6547";
+	char wlan[IFNAMSIZ] = "";
+    // char wlan[IFNAMSIZ] = "wlx00c0caae6579";
 	// char host[IFNAMSIZ] = DEFAULT_NAN_DEVICE;
     char host[IFNAMSIZ] = "nan0";
 	int channel = 6;
@@ -584,13 +584,14 @@ int main(int argc, char *argv[])
 	// 	}
 	// }
 
-	// if (argc - optind != 1)
-	// {
-	// 	log_error("Incorrect number of arguments: %d", argc - optind);
-	// 	print_usage(argv[0]);
-	// 	return EXIT_FAILURE;
-	// }
-	// strcpy(wlan, argv[optind]);
+	if (argc - optind != 1)
+	{
+		// log_error("Incorrect number of arguments: %d", argc - optind);
+        printf("Incorrect number of arguments: %d\n", argc - optind);
+		// print_usage(argv[0]);
+		return EXIT_FAILURE;
+	}
+	strcpy(wlan, argv[optind]);
 
 	// switch (channel)
 	// {
@@ -1307,9 +1308,7 @@ void circular_buf_reset(circular_buf_t cbuf)
 }
 
 /*
-gcc test.c -o test -lpcap -lev -lnl-genl-3 -lnl-3 -L/usr/include/libnl3/netlink/netlink.h -I /usr/include/libnl3/ $(pkg-config --cflags --libs libnl-3.0 libnl-genl-3.0)
-
-gcc test.c -o test -I /usr/include/libnl3 -lpcap -lev
+gcc test.c -o test -lpcap -lev -I/usr/include/libnl3 $(pkg-config --cflags --libs libnl-3.0 libnl-genl-3.0 libnl-route-3.0)
 
 */
 
