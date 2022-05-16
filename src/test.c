@@ -1,14 +1,35 @@
-#include <stdio.h>
-#include <pcap/pcap.h>
 #include <errno.h>
-#include <stdlib.h>
+#include <ev.h>
+#include <fcntl.h>
+#include <net/if.h>
+#include <pcap/pcap.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <ev.h>
-#include <net/if.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h> 
 #include <time.h>
+#include <unistd.h>
+
+#ifndef __APPLE__
+#include <linux/if_tun.h>
+#else
+#include <sys/sys_domain.h>
+#include <sys/kern_control.h>
+#include <netinet/in.h>
+#include <netinet/in_var.h>
+#endif /* __APPLE__ */
 
 #include "test.h"
+
+#include <unistd.h>
+#include <netlink/netlink.h>
+#include <netlink/genl/genl.h>
+#include <netlink/genl/ctrl.h>
+#include <netlink/route/link.h>
+#include <netlink/route/neighbour.h>
+#include <linux/nl80211.h>
 
 // int main(int argc, char *argv[])
 // {
@@ -592,7 +613,7 @@ int main(int argc, char *argv[])
     if (nan_init_test(&state, wlan, host, channel, NULL) < 0)
 	{
 		// log_error("could not initialize core");
-        printf("could not initialize core");
+        printf("could not initialize core\n");
 		return EXIT_FAILURE;
 	}
 
@@ -673,10 +694,222 @@ int io_state_init_test(struct io_state *state, const char *wlan, const char *hos
     if ((err = io_state_init_wlan_test(state, wlan, channel, bssid_filter)))
         return err;
 
-    // if ((err = io_state_init_host(state, host)))
-    //     return err;
+    if ((err = io_state_init_host_test(state, host)))
+        return err;
 
     return 0;
+}
+
+static int io_state_init_host_test(struct io_state *state, const char *host)
+{
+    if (strlen(host) > 0)
+    {
+        strcpy(state->host_ifname, host);
+        /* Host interface needs to have same ether_addr, to make active (!) monitor mode work */
+        state->host_fd = open_tun_test(state->host_ifname, &state->if_ether_addr);
+
+        int err;
+        if ((err = state->host_fd) < 0)
+        {
+            // log_error("Could not open device: %s", state->host_ifname);
+            printf("Could not open device: %s\n", state->host_ifname);
+            return err;
+        }
+        state->host_ifindex = if_nametoindex(state->host_ifname);
+        if (!state->host_ifindex)
+        {
+            // log_error("No such interface exists %s", state->host_ifname);
+            printf("No such interface exists %s\n", state->host_ifname);
+            return -ENOENT;
+        }
+    }
+    else
+    {
+        // log_debug("No host device given, start without host device");
+        printf("No host device given, start without host device\n");
+    }
+
+    return 0;
+}
+
+static int open_tun_test(char *dev, const struct ether_addr *self)
+{
+#ifndef __APPLE__
+    static int one = 1;
+    struct ifreq ifr;
+    int fd, err, s;
+
+    if ((fd = open("/dev/net/tun", O_RDWR)) < 0)
+    {
+        // log_error("tun: unable to open tun device %d", fd);
+        printf("tun: unable to open tun device %d\n", fd);
+        return fd;
+    }
+
+    memset(&ifr, 0, sizeof(ifr));
+
+    /* Flags: IFF_TUN   - TUN device (no Ethernet headers)
+	 *        IFF_TAP   - TAP device
+	 *        IFF_NO_PI - Do not provide packet information
+	 */
+    ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+    if (*dev)
+        strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+
+    if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0)
+    {
+        close(fd);
+        return err;
+    }
+    strcpy(dev, ifr.ifr_name);
+
+    /* Set non-blocking mode */
+    if ((err = ioctl(fd, FIONBIO, &one)) < 0)
+    {
+        close(fd);
+        return err;
+    }
+
+    // Create a socket for ioctl
+    s = socket(AF_INET6, SOCK_DGRAM, 0);
+
+    // Set HW address
+    ifr.ifr_hwaddr.sa_family = 1; /* ARPHRD_ETHER */
+    memcpy(ifr.ifr_hwaddr.sa_data, self, 6);
+    if ((err = ioctl(s, SIOCSIFHWADDR, &ifr)) < 0)
+    {
+        // log_error("tun: unable to set HW address");
+        printf("tun: unable to set HW address\n");
+        close(fd);
+        return err;
+    }
+
+    // Get current flags and set them
+    ioctl(s, SIOCGIFFLAGS, &ifr);
+    ifr.ifr_flags |= IFF_UP | IFF_RUNNING;
+    if ((err = ioctl(s, SIOCSIFFLAGS, &ifr)) < 0)
+    {
+        // log_error("tun: unable to set up");
+        printf("tun: unable to set up\n");
+        close(fd);
+        return err;
+    }
+
+    /* Set reduced MTU */
+    ifr.ifr_mtu = 1450; /* TODO arbitary limit to fit all headers */
+    if ((err = ioctl(s, SIOCSIFMTU, (void *)&ifr)) < 0)
+    {
+        // log_error("tun: unable to set MTU");
+        printf("tun: unable to set MTU");
+        close(fd);
+        return err;
+    }
+
+    close(s);
+
+    return fd;
+#else
+    for (int i = 0; i < 16; ++i)
+    {
+        char tuntap[IFNAMSIZ];
+        sprintf(tuntap, "/dev/tap%d\n", i);
+
+        int fd = open(tuntap, O_RDWR);
+        if (fd > 0)
+        {
+            struct ifreq ifr;
+            struct in6_aliasreq ifr6;
+            int err, s;
+
+            if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
+            {
+                // log_error("fcntl error on %s", tuntap);
+                printf("fcntl error on %s\n", tuntap);
+                return -errno;
+            }
+
+            sprintf(dev, "tap%d", i);
+
+            // Create a socket for ioctl
+            s = socket(AF_INET6, SOCK_DGRAM, 0);
+
+            // Set HW address
+            strlcpy(ifr.ifr_name, dev, sizeof(ifr.ifr_name));
+            ifr.ifr_addr.sa_len = sizeof(struct ether_addr);
+            ifr.ifr_addr.sa_family = AF_LINK;
+            memcpy(ifr.ifr_addr.sa_data, self, sizeof(struct ether_addr));
+            if ((err = ioctl(s, SIOCSIFLLADDR, (caddr_t)&ifr)) < 0)
+            {
+                // log_error("tun: unable to set HW address %s", ether_ntoa(self));
+                printf("tun: unable to set HW address %s\n", ether_ntoa(self));
+                close(fd);
+                return err;
+            }
+
+            /* Set reduced MTU */
+            ifr.ifr_mtu = 1450; /* TODO arbitary limit to fit all headers */
+            if ((err = ioctl(s, SIOCSIFMTU, (caddr_t)&ifr)) < 0)
+            {
+                // log_error("tun: unable to set MTU");
+                printf("tun: unable to set MTU\n");
+                close(fd);
+                return err;
+            }
+
+            /* Set IPv6 address */
+            memset(&ifr6, 0, sizeof(ifr6));
+            strlcpy(ifr6.ifra_name, dev, sizeof(ifr6.ifra_name));
+
+            ifr6.ifra_addr.sin6_len = sizeof(ifr6.ifra_addr);
+            ifr6.ifra_addr.sin6_family = AF_INET6;
+            rfc4291_addr(self, &ifr6.ifra_addr.sin6_addr);
+
+            ifr6.ifra_prefixmask.sin6_len = sizeof(ifr6.ifra_prefixmask);
+            ifr6.ifra_prefixmask.sin6_family = AF_INET6;
+            memset((void *)&ifr6.ifra_prefixmask.sin6_addr, 0x00, sizeof(ifr6.ifra_prefixmask));
+            for (int i = 0; i < 8; i++) /* prefix length: 64 */
+                ifr6.ifra_prefixmask.sin6_addr.s6_addr[i] = 0xff;
+
+            if (ioctl(s, SIOCAIFADDR_IN6, (caddr_t)&ifr6) < 0)
+            {
+                // log_error("tun: unable to set IPv6 address, %s", strerror(errno));
+                printf("tun: unable to set IPv6 address, %s\n", strerror(errno));
+                close(fd);
+                return -errno;
+            }
+
+            close(s);
+
+            return fd;
+        }
+    }
+    // log_error("tun: cannot open available device");
+    printf("tun: cannot open available device\n");
+    return -1;
+#endif /* __APPLE__ */
+}
+
+static struct nlroute_state nlroute_state;
+
+int link_ether_addr_get_test(const char *ifname, struct ether_addr *addr)
+{
+	int err;
+	struct rtnl_link *link;
+	struct nl_addr *nladdr;
+
+	err = rtnl_link_get_kernel(nlroute_state.socket, 0, ifname, &link);
+	if (err < 0)
+	{
+		// log_error("Could not get link: %s", nl_geterror(err));
+        printf("Could not get link: %s\n", nl_geterror(err));
+		return err;
+	}
+
+	nladdr = rtnl_link_get_addr(link);
+
+	*addr = *(struct ether_addr *)nl_addr_get_binary_addr(nladdr);
+
+	return 0;
 }
 
 int io_state_init_wlan_test(struct io_state *state, const char *wlan, const int channel,
@@ -734,11 +967,12 @@ int io_state_init_wlan_test(struct io_state *state, const char *wlan, const int 
     //     return -1;
     // }
 
-    // if (link_ether_addr_get(state->wlan_ifname, &state->if_ether_addr) < 0)
-    // {
-    //     log_error("Could not get LLC address from %s", state->wlan_ifname);
-    //     return -1;
-    // }
+    if (link_ether_addr_get_test(state->wlan_ifname, &state->if_ether_addr) < 0)
+    {
+        // log_error("Could not get LLC address from %s", state->wlan_ifname);
+        printf("Could not get LLC address from %s\n", state->wlan_ifname);
+        return -1;
+    }
 
     return 0;
 }
@@ -1072,7 +1306,14 @@ void circular_buf_reset(circular_buf_t cbuf)
 	cbuf->full = 0;
 }
 
-// gcc test.c -o test -lpcap -lev
+/*
+gcc test.c -o test -lpcap -lev -lnl-genl-3 -lnl-3 -L/usr/include/libnl3/netlink/netlink.h -I /usr/include/libnl3/ $(pkg-config --cflags --libs libnl-3.0 libnl-genl-3.0)
+
+gcc test.c -o test -I /usr/include/libnl3 -lpcap -lev
+
+*/
+
+// sudo ./test
 
 // wlan send: for loop - 0: 0
 // 11:52:00 DEBUG io.c:376: wlan send: for loop - 1: 0

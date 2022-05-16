@@ -25,6 +25,13 @@
 #include <netinet/ether.h>
 #endif
 
+#include <netinet/in.h>
+#ifdef __APPLE__
+#include <net/ethernet.h>
+#else
+#include <netinet/ether.h>
+#endif
+
 #define HOST_NAME_LENGTH_MAX 64
 #define BUF_MAX_LENGTH 65535
 #define USEC_TO_TU(usec) (usec) / 1024
@@ -123,6 +130,11 @@ struct buf
     int error;
 };
 
+struct nlroute_state
+{
+	struct nl_sock *socket;
+};
+
 int nan_init_test(struct daemon_state *state, const char *wlan, const char *host, int channel, const char *dump);
 
 void nan_schedule_test(struct ev_loop *loop, struct daemon_state *state);
@@ -167,3 +179,10 @@ void nan_sync_state_init(struct nan_sync_state *state,
 circular_buf_t circular_buf_init(size_t size);
 
 void circular_buf_reset(circular_buf_t cbuf);
+
+static int io_state_init_host_test(struct io_state *state, const char *host);
+
+static int open_tun_test(char *dev, const struct ether_addr *self);
+
+int link_ether_addr_get_test(const char *ifname, struct ether_addr *addr);
+
