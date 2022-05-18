@@ -186,3 +186,6 @@ static int open_tun_test(char *dev, const struct ether_addr *self);
 
 int link_ether_addr_get_test(const char *ifname, struct ether_addr *addr);
 
+int netutils_init_test();
+
+static int nlroute_init_test(struct nlroute_state *state);

@@ -611,12 +611,15 @@ int main(int argc, char *argv[])
 	// log_debug("main: dump_file - %s", dump ? dump_file : 0);
 
 	// if (nan_init_test(&state, wlan, host, channel, dump ? dump_file : 0) < 0)
+    printf("here0");
+
     if (nan_init_test(&state, wlan, host, channel, NULL) < 0)
 	{
 		// log_error("could not initialize core");
         printf("could not initialize core\n");
 		return EXIT_FAILURE;
 	}
+    printf("here1");
 
 	// printf("88b 88    db    88b 88\n"
 	// 	   "88Yb88   dPYb   88Yb88\n"
@@ -630,7 +633,9 @@ int main(int argc, char *argv[])
 	// log_info("Initial Cluster ID: %s", ether_addr_to_string(&state.nan_state.cluster.cluster_id));
 
 	struct ev_loop *loop = EV_DEFAULT;
+    printf("here2");
 	nan_schedule_test(loop, &state);
+    printf("here3");
 	// ev_run(loop, 0);
 
 	// nan_free(&state);
@@ -665,8 +670,8 @@ int nan_init_test(struct daemon_state *state, const char *wlan, const char *host
 
     // srand(clock_time_usec());
 
-    // if ((err = netutils_init()))
-    //     return err;
+    if ((err = netutils_init_test()))
+        return err;
 
     if ((err = io_state_init_test(&state->io_state, wlan, host, channel, NULL)))
         return err;
@@ -685,6 +690,41 @@ int nan_init_test(struct daemon_state *state, const char *wlan, const char *host
     state->last_cmd = NULL;
 
     return 0;
+}
+
+static struct nlroute_state nlroute_state;
+
+int netutils_init_test()
+{
+	int err;
+	err = nlroute_init_test(&nlroute_state);
+	if (err < 0)
+		return err;
+	// err = nl80211_init(&nl80211_state);
+	// if (err < 0)
+	// 	return err;
+	return 0;
+}
+
+static int nlroute_init_test(struct nlroute_state *state)
+{
+	state->socket = nl_socket_alloc();
+	if (!state->socket)
+	{
+		// log_error("Failed to allocate netlink socket.");
+        printf("Failed to allocate netlink socket.\n");
+		return -ENOMEM;
+	}
+
+	if (nl_connect(state->socket, NETLINK_ROUTE))
+	{
+		// log_error("Failed to connect to generic netlink.");
+        printf("Failed to connect to generic netlink.\n");
+		nl_socket_free(state->socket);
+		return -ENOLINK;
+	}
+
+	return 0;
 }
 
 int io_state_init_test(struct io_state *state, const char *wlan, const char *host, const int channel,
@@ -889,8 +929,6 @@ static int open_tun_test(char *dev, const struct ether_addr *self)
     return -1;
 #endif /* __APPLE__ */
 }
-
-static struct nlroute_state nlroute_state;
 
 int link_ether_addr_get_test(const char *ifname, struct ether_addr *addr)
 {
