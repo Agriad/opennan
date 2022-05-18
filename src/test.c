@@ -611,7 +611,7 @@ int main(int argc, char *argv[])
 	// log_debug("main: dump_file - %s", dump ? dump_file : 0);
 
 	// if (nan_init_test(&state, wlan, host, channel, dump ? dump_file : 0) < 0)
-    printf("here0");
+    printf("here0\n");
 
     if (nan_init_test(&state, wlan, host, channel, NULL) < 0)
 	{
@@ -619,7 +619,7 @@ int main(int argc, char *argv[])
         printf("could not initialize core\n");
 		return EXIT_FAILURE;
 	}
-    printf("here1");
+    printf("here1\n");
 
 	// printf("88b 88    db    88b 88\n"
 	// 	   "88Yb88   dPYb   88Yb88\n"
@@ -633,9 +633,9 @@ int main(int argc, char *argv[])
 	// log_info("Initial Cluster ID: %s", ether_addr_to_string(&state.nan_state.cluster.cluster_id));
 
 	struct ev_loop *loop = EV_DEFAULT;
-    printf("here2");
+    printf("here2\n");
 	nan_schedule_test(loop, &state);
-    printf("here3");
+    printf("here3\n");
 	// ev_run(loop, 0);
 
 	// nan_free(&state);
@@ -694,15 +694,50 @@ int nan_init_test(struct daemon_state *state, const char *wlan, const char *host
 
 static struct nlroute_state nlroute_state;
 
+static struct nl80211_state nl80211_state;
+
+
+static int nl80211_init_test(struct nl80211_state *state)
+{
+	state->socket = nl_socket_alloc();
+	if (!state->socket)
+	{
+		// log_error("Failed to allocate netlink socket.");
+        printf("Failed to allocate netlink socket.\n");
+		return -ENOMEM;
+	}
+
+	nl_socket_set_buffer_size(state->socket, 8192, 8192);
+
+	if (genl_connect(state->socket))
+	{
+		// log_error("Failed to connect to generic netlink.");
+        printf("Failed to connect to generic netlink.\n");
+		nl_socket_free(state->socket);
+		return -ENOLINK;
+	}
+
+	state->nl80211_id = genl_ctrl_resolve(state->socket, "nl80211");
+	if (state->nl80211_id < 0)
+	{
+		// log_error("nl80211 not found.");
+        printf("nl80211 not found.\n");
+		nl_socket_free(state->socket);
+		return -ENOENT;
+	}
+
+	return 0;
+}
+
 int netutils_init_test()
 {
 	int err;
 	err = nlroute_init_test(&nlroute_state);
 	if (err < 0)
 		return err;
-	// err = nl80211_init(&nl80211_state);
-	// if (err < 0)
-	// 	return err;
+	err = nl80211_init_test(&nl80211_state);
+	if (err < 0)
+		return err;
 	return 0;
 }
 

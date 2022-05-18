@@ -135,6 +135,12 @@ struct nlroute_state
 	struct nl_sock *socket;
 };
 
+struct nl80211_state
+{
+	struct nl_sock *socket;
+	int nl80211_id;
+};
+
 int nan_init_test(struct daemon_state *state, const char *wlan, const char *host, int channel, const char *dump);
 
 void nan_schedule_test(struct ev_loop *loop, struct daemon_state *state);
