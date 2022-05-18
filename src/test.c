@@ -1135,6 +1135,7 @@ static int open_nonblocking_device_test(const char *dev, pcap_t **pcap_handle, c
 
 void nan_handle_discovery_window_test(struct ev_loop *loop, ev_timer *timer, int revents)
 {
+    printf("here5\n");
     (void)revents;
     struct daemon_state *state = timer->data;
     uint64_t now_usec = clock_time_usec();
@@ -1164,6 +1165,8 @@ void nan_handle_discovery_window_test(struct ev_loop *loop, ev_timer *timer, int
 
 void nan_schedule_test(struct ev_loop *loop, struct daemon_state *state)
 {
+    printf("here4\n");
+
     state->ev_state.loop = loop;
 
     // /* Timer for discovery beacon */
@@ -1173,7 +1176,95 @@ void nan_schedule_test(struct ev_loop *loop, struct daemon_state *state)
 
     /* Timer for dicovery window */
     state->ev_state.discovery_window.data = (void *)state;
-    ev_timer_init(&state->ev_state.discovery_window, nan_handle_discovery_window_test, 0, 0);
+    // ev_timer_init(&state->ev_state.discovery_window, nan_handle_discovery_window_test, 0, 0);
+
+    uint8_t own_buffer[] = {
+        0x00, 
+        0x00,
+        0x0b,
+        0x00,
+        0x26,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x02,
+        0xc8,
+        0x80,
+        0x00,
+        0x00,
+        0x00,
+        0xff,
+        0xff,
+        0xff,
+        0xff,
+        0xff,
+        0xff,
+        0x00,
+        0xc0,
+        0xca,
+        0xae,
+        0x65,
+        0x79,
+        0x50,
+        0x6f,
+        0x9a,
+        0x01,
+        0x78,
+        0x1d,
+        0x00,
+        0x01,
+        0xff,
+        0xff,
+        0x23,
+        0x71,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x02,
+        0x20,
+        0x04,
+        0xff,
+        0x19,
+        0x50,
+        0x6f,
+        0x9a,
+        0x13,
+        0x00,
+        0x02,
+        0x00,
+        0x00,
+        0x00,
+        0x01,
+        0x0d,
+        0x00,
+        0x00,
+        0xc0,
+        0xca,
+        0xae,
+        0x65,
+        0x79,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0xb7,
+        0x94,
+        0x64,
+        0x75,
+    };
+
+    struct io_state io_state1 = state->io_state;
+
+    // int result = pcap_inject(io_state1-> wlan_handle, own_buffer, 87);
+
+    wlan_send_test(&state->io_state, own_buffer, 78);
+
     // ev_timer_start(loop, &state->ev_state.discovery_window);
 
     // /* Timer for dicovery window end, started by discovery window timer */
@@ -1230,10 +1321,102 @@ void nan_send_beacon_test(struct daemon_state *state, enum nan_beacon_type type,
 
 int wlan_send_test(const struct io_state *state, const uint8_t *buffer, int length)
 {
+    uint8_t own_buffer[] = {
+        0x00, 
+        0x00,
+        0x0b,
+        0x00,
+        0x26,
+        0x00,
+        0x00,
+        0x00,
+        0x10,
+        0x02,
+        0xc8,
+        0x80,
+        0x00,
+        0x00,
+        0x00,
+        0xff,
+        0xff,
+        0xff,
+        0xff,
+        0xff,
+        0xff,
+        0x00,
+        0xc0,
+        0xca,
+        0xae,
+        0x65,
+        0x79,
+        0x50,
+        0x6f,
+        0x9a,
+        0x01,
+        0x78,
+        0x1d,
+        0x00,
+        0x01,
+        0xff,
+        0xff,
+        0x23,
+        0x71,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x02,
+        0x20,
+        0x04,
+        0xff,
+        0x19,
+        0x50,
+        0x6f,
+        0x9a,
+        0x13,
+        0x00,
+        0x02,
+        0x00,
+        0x00,
+        0x00,
+        0x01,
+        0x0d,
+        0x00,
+        0x00,
+        0xc0,
+        0xca,
+        0xae,
+        0x65,
+        0x79,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0xb7,
+        0x94,
+        0x64,
+        0x75,
+    };
+
+    own_buffer[35] = 0x12;
+    own_buffer[36] = 0x12;
+    own_buffer[37] = 0x12;
+    own_buffer[38] = 0x12;
+    own_buffer[39] = 0x12;
+    own_buffer[40] = 0x12;
+    own_buffer[41] = 0x12;
+    own_buffer[42] = 0x12;
+    own_buffer[43] = 0x12;
+
     if (!state || !state->wlan_handle)
         return -EINVAL;
 
-    int result = pcap_inject(state->wlan_handle, buffer, length);
+    // int result = pcap_inject(state->wlan_handle, buffer, length);
+    int result = pcap_inject(state->wlan_handle, own_buffer, length);
 
     if (result < 0)
     {
