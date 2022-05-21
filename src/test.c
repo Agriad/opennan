@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 
 	char wlan[IFNAMSIZ] = "";
     // char wlan[IFNAMSIZ] = "wlx00c0caae6579";
-    char host[IFNAMSIZ] = "nan0";
+    char host[IFNAMSIZ] = "nan1";
 	int channel = 6;
 
 	struct daemon_state state;
