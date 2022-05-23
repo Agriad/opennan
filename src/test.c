@@ -375,10 +375,96 @@ int link_ether_addr_get_test(const char *ifname, struct ether_addr *addr)
 	return 0;
 }
 
+int ieee80211_channel_to_frequency_test(int chan)
+{
+    /* see 802.11 17.3.8.3.2 and Annex J
+	 * there are overlapping channel numbers in 5GHz and 2GHz bands */
+    if (chan <= 0)
+        return 0; /* not supported */
+
+    /* 2 GHz band */
+    if (chan == 14)
+        return 2484;
+    else if (chan < 14)
+        return 2407 + chan * 5;
+
+    /* 5 GHz band */
+    if (chan < 32)
+        return 0; /* not supported */
+
+    if (chan >= 182 && chan <= 196)
+        return 4000 + chan * 5;
+    else
+        return 5000 + chan * 5;
+}
+
+int set_channel_test(int ifindex, int channel /* TODO int ctrl_freq , int bw, int cntr_freq */)
+{
+	int err;
+	struct nl_msg *m;
+	int freq;
+
+	freq = ieee80211_channel_to_frequency_test(channel);
+	if (!freq)
+	{
+        printf("Invalid channel number %d\n", channel);
+		err = -EINVAL;
+		goto out;
+	}
+
+	m = nlmsg_alloc();
+	if (!m)
+	{
+        printf("Could not allocate netlink message\n");
+		err = -ENOMEM;
+		goto out;
+	}
+
+	if (genlmsg_put(m, 0, 0, nl80211_state.nl80211_id, 0, 0, NL80211_CMD_SET_CHANNEL, 0) == NULL)
+	{
+        printf("Could not gen message\n");
+		err = -ENOBUFS;
+		goto out;
+	}
+
+	NLA_PUT_U32(m, NL80211_ATTR_IFINDEX, ifindex);
+	NLA_PUT_U32(m, NL80211_ATTR_WIPHY_FREQ, freq);
+	NLA_PUT_U32(m, NL80211_ATTR_WIPHY_CHANNEL_TYPE, NL80211_CHAN_HT40PLUS);
+
+	err = nl_send_auto_complete(nl80211_state.socket, m);
+	if (err < 0)
+	{
+        printf("error while sending via netlink\n");
+		goto out;
+	}
+
+	err = nl_recvmsgs_default(nl80211_state.socket);
+	goto out;
+
+nla_put_failure:
+    printf("building message failed\n");
+	err = -ENOBUFS;
+out:
+	if (m)
+		nlmsg_free(m);
+	if (err < 0)
+        printf("error while setting channel: %s\n", nl_geterror(err));
+	return err;
+}
+
 int io_state_init_wlan_test(struct io_state *state, const char *wlan, const int channel,
                        const struct ether_addr *bssid_filter)
 {
     strcpy(state->wlan_ifname, wlan);
+
+    // if (!state->no_channel)
+    // {
+    //     if (set_channel_test(state->wlan_ifindex, channel))
+    //     {
+    //         printf("Could not set channel of %s\n", state->wlan_ifname);
+    //         return -1;
+    //     }
+    // }
 
     state->wlan_fd = open_nonblocking_device_test(state->wlan_ifname, &state->wlan_handle, bssid_filter);
 

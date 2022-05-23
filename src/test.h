@@ -195,3 +195,7 @@ int link_ether_addr_get_test(const char *ifname, struct ether_addr *addr);
 int netutils_init_test();
 
 static int nlroute_init_test(struct nlroute_state *state);
+
+int set_channel_test(int ifindex, int channel);
+
+int ieee80211_channel_to_frequency_test(int chan);
