@@ -352,6 +352,13 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     int beacon_type = 0;
     int result = 0;
 
+    uint8_t *buffer = buf_data(frame);
+
+    for (int i = 0; i < (int)buf_size(frame); i++)
+    {
+        log_debug("nan rx beacon: buffer - %d - %x", i, buffer[i]);
+    }
+
     // result = nan_parse_beacon_header(frame, &beacon_type, &timestamp);
 
     if ((result = nan_parse_beacon_header(frame, &beacon_type, &timestamp)) != RX_OK)

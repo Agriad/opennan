@@ -381,20 +381,36 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     // log_debug("wlan send: address math - %x", buffer + address_difference);
     // log_debug("wlan send: length - %d", length);
 
-    uint8_t test[length];
+    int new_length = length + 8;
+    uint8_t test[new_length];
+    uint8_t timestamp_temp[8];
     memcpy(test, buffer, length);
 
-    test[35] = 0x12;
-    test[36] = 0x12;
-    test[37] = 0x12;
-    test[38] = 0x12;
-    test[39] = 0x12;
-    test[40] = 0x12;
-    test[41] = 0x12;
-    test[42] = 0x12;
-    test[43] = 0x12;
+    for(int i = 35; i < 43; i++) {
+        timestamp_temp[i - 35] = buffer[i];
 
-    for(int i = 0; i < length; i++) {
+        log_debug("wlan send: buffer - %d : %x", i, buffer[i]);
+        log_debug("wlan send: timestamp temp - %d : %x", i - 35, timestamp_temp[i - 35]);
+    }
+
+    for(int i = length; i < new_length + 1; i++) {
+        test[i] = timestamp_temp[i - length];
+
+        log_debug("wlan send: test - %d : %x", i, test[i]);
+        log_debug("wlan send: timestamp temp - %d : %x", i - length, timestamp_temp[i - length]);
+    }
+
+    // test[35] = 0x12;
+    // test[36] = 0x12;
+    // test[37] = 0x12;
+    // test[38] = 0x12;
+    // test[39] = 0x12;
+    // test[40] = 0x12;
+    // test[41] = 0x12;
+    // test[42] = 0x12;
+    // test[43] = 0x12;
+
+    for(int i = 0; i < new_length; i++) {
         // log_debug("wlan send: for loop - %d: %x", i, *(buffer + i));
         log_debug("wlan send: for loop - %d: %x", i, *(test + i));
     }
@@ -412,12 +428,12 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
         return -EINVAL;
 
     // int result = pcap_inject(state->wlan_handle, buffer, length);
-    int result = pcap_inject(state->wlan_handle, test, length);
+    int result = pcap_inject(state->wlan_handle, test, new_length);
     // int result1 = pcap_sendpacket(state->wlan_handle, buffer_all1, length);
     // int result = 1;
-    // for(int i = 0; i < length; i++) {
-    //     log_debug("wlan send: for loop 2 - %d: %x", i, *(buffer + i));
-    // }
+    for(int i = 0; i < new_length; i++) {
+        log_debug("wlan send: for loop 2 - %d: %x", i, *(test + i));
+    }
 
     // log_debug("wlan send: pcap inject result - %d", result);
     if (result < 0)
