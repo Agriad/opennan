@@ -293,9 +293,9 @@ int io_state_init_wlan(struct io_state *state, const char *wlan, const int chann
         }
     }
 
-    log_debug("io state init wlan: state wlan ifname %s", state -> wlan_ifname);
-    log_debug("io state init wlan: state wlan handle %s", state -> wlan_handle);
-    log_debug("io state init wlan: bssid filter %s", bssid_filter);
+    // log_debug("io state init wlan: state wlan ifname %s", state -> wlan_ifname);
+    // log_debug("io state init wlan: state wlan handle %s", state -> wlan_handle);
+    // log_debug("io state init wlan: bssid filter %s", bssid_filter);
 
     state->wlan_fd = open_nonblocking_device(state->wlan_ifname, &state->wlan_handle, bssid_filter);
     if (state->wlan_fd < 0)

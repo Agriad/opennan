@@ -9,8 +9,8 @@
 void nan_timer_state_init(struct nan_timer_state *state, const uint64_t now_usec)
 {
     state->now_usec = now_usec;
-    // state->base_time_usec = now_usec;
-    state->base_time_usec = 1898184703;
+    state->base_time_usec = now_usec;
+    // state->base_time_usec = 1898184703;
     state->last_discovery_beacon_usec = 0;
     state->warmup_done = false;
     state->initial_scan_done = true;
@@ -57,8 +57,8 @@ void nan_timer_sync_error(struct nan_timer_state *state, const uint64_t now_usec
 {
     log_debug("nan timer sync error: time stamp - %lld", timestamp);
     log_debug("nan timer sync error: time usec - %d", (int)nan_timer_get_synced_time_usec(state, now_usec));
-    // int error_usec = (int)nan_timer_get_synced_time_usec(state, now_usec) - timestamp;
-    int error_usec = (int)nan_timer_get_synced_time_usec(state, 1898184703) - timestamp;
+    int error_usec = (int)nan_timer_get_synced_time_usec(state, now_usec) - timestamp;
+    // int error_usec = (int)nan_timer_get_synced_time_usec(state, 1898184703) - timestamp;
 
     // Skip too large differences
     if (abs(error_usec) > TU_TO_USEC(NAN_DW_INTERVAL_TU)) {

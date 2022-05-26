@@ -344,6 +344,8 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
 //     return 
 // }
 
+
+// modified for timestamp to be sent in the end of the message and only 4 bytes long
 int nan_rx_beacon(struct buf *frame, struct nan_state *state,
                   const struct ether_addr *peer_address, const struct ether_addr *cluster_id,
                   const signed char rssi, const uint64_t now_usec)
@@ -357,6 +359,13 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     // log_debug("nan rx beacon: ether addr - %s", ether_addr_to_string(peer_address));
 
     uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
+
+    for (int i = 48; i < 48 + 4; i++)
+    {
+        int j = 91;
+
+        buffer[i] = buffer[j + i - 48];
+    }
 
     if (ether_addr_equal(peer_address, other_opennan_ether_addr))
     {
@@ -384,7 +393,7 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     // timestamp = 1048573;
 
     // 0x7123ffff
-    timestamp = 1898184703;
+    // timestamp = 1898184703;
 
     log_debug("nan rx beacon: timestamp - %d", timestamp);
     // log_debug("nan rx beacon: result - %d", result);
@@ -470,8 +479,8 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     {
         // log_debug("nan rx beacon: in if case");
 
-        // uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, now_usec);
-        uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, 1898184703);
+        uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, now_usec);
+        // uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, 1898184703);
         int result = nan_cluster_compare_grade(state->sync.master_preference, synced_time_usec,
                                                peer->master_preference, timestamp);
 

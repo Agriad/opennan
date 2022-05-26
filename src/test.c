@@ -790,8 +790,8 @@ void nan_event_state_init(struct nan_event_state *state)
 void nan_timer_state_init(struct nan_timer_state *state, const uint64_t now_usec)
 {
     state->now_usec = now_usec;
-    // state->base_time_usec = now_usec;
-    state->base_time_usec = 1898184703;
+    state->base_time_usec = now_usec;
+    // state->base_time_usec = 1898184703;
     state->last_discovery_beacon_usec = 0;
     state->warmup_done = false;
     state->initial_scan_done = true;
