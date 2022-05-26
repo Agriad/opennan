@@ -652,6 +652,22 @@ void nan_schedule_test(struct ev_loop *loop, struct daemon_state *state)
         0x94,
         0x64,
         0x75,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12,
+        0x12
     };
 
     own_buffer[35] = 0x12;
@@ -666,7 +682,7 @@ void nan_schedule_test(struct ev_loop *loop, struct daemon_state *state)
 
     struct io_state io_state1 = state->io_state;
 
-    wlan_send_test(&state->io_state, own_buffer, 78);
+    wlan_send_test(&state->io_state, own_buffer, sizeof(own_buffer) / sizeof(own_buffer[0]));
 }
 
 void nan_send_beacon_test(struct daemon_state *state, enum nan_beacon_type type, uint64_t now_usec)

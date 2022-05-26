@@ -356,15 +356,15 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
 
     // log_debug("nan rx beacon: ether addr - %s", ether_addr_to_string(peer_address));
 
-    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
+    // uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x47};
 
-    if (ether_addr_equal(peer_address, other_opennan_ether_addr))
-    {
-        for (int i = 0; i < (int)buf_size(frame); i++)
-        {
-            log_debug("nan rx beacon: buffer - %d - %x", i, buffer[i]);
-        }
-    }
+    // if (ether_addr_equal(peer_address, other_opennan_ether_addr))
+    // {
+    //     for (int i = 0; i < (int)buf_size(frame); i++)
+    //     {
+    //         log_debug("nan rx beacon: buffer - %d - %x", i, buffer[i]);
+    //     }
+    // }
 
     // for (int i = 0; i < (int)buf_size(frame); i++)
     // {
