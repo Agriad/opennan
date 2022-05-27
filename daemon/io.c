@@ -393,27 +393,18 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
         // log_debug("wlan send: timestamp temp - %d : %x", i - 35, timestamp_temp[i - 35]);
     }
 
-    for(int i = length; i < new_length + 1; i++) {
+    for(int i = length; i < new_length; i++) {
         test[i] = timestamp_temp[i - length];
+        // test[i] = 0x12;
 
         // log_debug("wlan send: test - %d : %x", i, test[i]);
         // log_debug("wlan send: timestamp temp - %d : %x", i - length, timestamp_temp[i - length]);
     }
 
-    // test[35] = 0x12;
-    // test[36] = 0x12;
-    // test[37] = 0x12;
-    // test[38] = 0x12;
-    // test[39] = 0x12;
-    // test[40] = 0x12;
-    // test[41] = 0x12;
-    // test[42] = 0x12;
-    // test[43] = 0x12;
-
-    for(int i = 0; i < new_length; i++) {
-        // log_debug("wlan send: for loop - %d: %x", i, *(buffer + i));
-        // log_debug("wlan send: for loop - %d: %x", i, *(test + i));
-    }
+    // for(int i = 0; i < new_length; i++) {
+    //     log_debug("wlan send: for loop - %d: %x", i, *(buffer + i));
+    //     log_debug("wlan send: for loop - %d: %x", i, *(test + i));
+    // }
 
     // struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame*) (buffer + address_difference);
     // log_debug("wlan send: time stamp - %lld", beacon_header -> time_stamp);
@@ -427,8 +418,116 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     if (!state || !state->wlan_handle)
         return -EINVAL;
 
+    // uint8_t own_buffer[] = {
+    //     0x00, 
+    //     0x00,
+    //     0x0b,
+    //     0x00,
+    //     0x26,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x10,
+    //     0x02,
+    //     0xc8,
+    //     0x80,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0xff,
+    //     0xff,
+    //     0xff,
+    //     0xff,
+    //     0xff,
+    //     0xff,
+    //     0x00,
+    //     0xc0,
+    //     0xca,
+    //     0xae,
+    //     0x65,
+    //     0x79,
+    //     0x50,
+    //     0x6f,
+    //     0x9a,
+    //     0x01,
+    //     0x78,
+    //     0x1d,
+    //     0x00,
+    //     0x01,
+    //     0xff,
+    //     0xff,
+    //     0x23,
+    //     0x71,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x02,
+    //     0x20,
+    //     0x04,
+    //     0xff,
+    //     0x19,
+    //     0x50,
+    //     0x6f,
+    //     0x9a,
+    //     0x13,
+    //     0x00,
+    //     0x02,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x01,
+    //     0x0d,
+    //     0x00,
+    //     0x00,
+    //     0xc0,
+    //     0xca,
+    //     0xae,
+    //     0x65,
+    //     0x79,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0xb7,
+    //     0x94,
+    //     0x64,
+    //     0x75,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12,
+    //     0x12
+    // };
+
+    // own_buffer[35] = 0x12;
+    // own_buffer[36] = 0x12;
+    // own_buffer[37] = 0x12;
+    // own_buffer[38] = 0x12;
+    // own_buffer[39] = 0x12;
+    // own_buffer[40] = 0x12;
+    // own_buffer[41] = 0x12;
+    // own_buffer[42] = 0x12;
+    // own_buffer[43] = 0x12;
+
     // int result = pcap_inject(state->wlan_handle, buffer, length);
     int result = pcap_inject(state->wlan_handle, test, new_length);
+    // int result = pcap_inject(state->wlan_handle, own_buffer, sizeof(own_buffer) / sizeof(own_buffer[0]));
     // int result1 = pcap_sendpacket(state->wlan_handle, buffer_all1, length);
     // int result = 1;
     for(int i = 0; i < new_length; i++) {

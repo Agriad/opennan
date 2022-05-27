@@ -275,6 +275,16 @@ void nan_receive_frame(uint8_t *user, const struct pcap_pkthdr *header, const ui
     struct daemon_state *state = (void *)user;
     struct buf *frame = buf_new_const(buf, header->caplen);
 
+    const struct ieee80211_hdr *ieee80211 = (const struct ieee80211_hdr *)buf_current(frame);
+    const struct ether_addr *source_address = &ieee80211->addr2;
+
+    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x47};
+
+    if (ether_addr_equal(source_address, other_opennan_ether_addr))
+    {
+        log_debug("nan receive frame: found 47");
+    }
+
     int result = nan_rx(frame, &state->nan_state);
     if (result < RX_OK)
     {
