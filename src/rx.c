@@ -340,9 +340,47 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     return RX_OK;
 }
 
-// int nan_get_timestamp(struct buf *frame, uint64_t *timestamp) {
-//     return 
-// }
+uint64_t fix_timestamp(uint8_t *buffer, uint64_t synced_time_usec)
+{
+    uint8_t synced_time_usec_buffer[8];
+
+    synced_time_usec_buffer[0] = synced_time_usec >> 8*0;
+    synced_time_usec_buffer[1] = synced_time_usec >> 8*1;
+    synced_time_usec_buffer[2] = synced_time_usec >> 8*2;
+    synced_time_usec_buffer[3] = synced_time_usec >> 8*3;
+    synced_time_usec_buffer[4] = synced_time_usec >> 8*4;
+    synced_time_usec_buffer[5] = synced_time_usec >> 8*5;
+    synced_time_usec_buffer[6] = synced_time_usec >> 8*6;
+    synced_time_usec_buffer[7] = synced_time_usec >> 8*7;
+
+    for (int i = 48; i < 52; i++)
+    {
+        buffer[i] = buffer[91 + i - 48];
+    }
+
+    for (int i = 52; i < 56; i++)
+    {
+        buffer[i] = synced_time_usec_buffer[4 + i - 52];
+    }
+
+    uint8_t timestamp_buffer[8];
+
+    for (int i = 91; i < 91 + 4; i++)
+    {
+        timestamp_buffer[i - 91] = buffer[i];
+    }
+
+    for (int i = 4; i < 8; i++)
+    {
+        timestamp_buffer[i - 4] = synced_time_usec_buffer[i];
+    }
+
+    uint64_t timestamp;
+
+    memcpy(&timestamp, timestamp_buffer, 8);
+
+    return timestamp;
+}
 
 
 // modified for timestamp to be sent in the end of the message and only 4 bytes long
@@ -356,49 +394,21 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
 
     uint8_t *buffer = buf_data(frame);
 
-    // log_debug("nan rx beacon: ether addr - %s", ether_addr_to_string(peer_address));
-
-    // uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x47};
-
-    for (int i = 48; i < 48 + 4; i++)
-    {
-        int j = 91;
-
-        buffer[i] = buffer[j + i - 48];
-    }
-
-    if (ether_addr_equal(peer_address, other_opennan_ether_addr))
-    {
-        for (int i = 0; i < (int)buf_size(frame); i++)
-        {
-            log_debug("nan rx beacon: buffer - %d - %x", i, buffer[i]);
-        }
-    }
-    // if (ether_addr_equal(peer_address, other_opennan_ether_addr))
-    // {
-    //     for (int i = 0; i < (int)buf_size(frame); i++)
-    //     {
-    //         log_debug("nan rx beacon: buffer - %d - %x", i, buffer[i]);
-    //     }
-    // }
-
-    // result = nan_parse_beacon_header(frame, &beacon_type, &timestamp);
+    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
 
     if ((result = nan_parse_beacon_header(frame, &beacon_type, &timestamp)) != RX_OK)
-        // log_debug("nan rx beacon: if result");
+    {
         return result;
+    }
 
-    // nan_parse_beacon_header(frame, &beacon_type, &timestamp);
+    uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, now_usec);
 
-    // log_debug("nan rx beacon: not if result");
-
-    // timestamp = 1048573;
-
-    // 0x7123ffff
-    // timestamp = 1898184703;
+    if (buf_size > 94)
+    {
+        timestamp = fix_timestamp(&buffer, synced_time_usec);
+    }
 
     log_debug("nan rx beacon: timestamp - %d", timestamp);
-    // log_debug("nan rx beacon: result - %d", result);
 
     log_trace("nan_beacon: received %s beacon from cluster %s",
               nan_beacon_type_to_string(beacon_type),
@@ -479,10 +489,6 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     bool in_initial_cluster = list_len(state->peers.peers) == 1 && peer_status == PEER_ADD;
     if (is_new_cluster || in_initial_cluster)
     {
-        // log_debug("nan rx beacon: in if case");
-
-        uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, now_usec);
-        // uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, 1898184703);
         int result = nan_cluster_compare_grade(state->sync.master_preference, synced_time_usec,
                                                peer->master_preference, timestamp);
 
@@ -499,18 +505,6 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
             log_debug("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
             log_trace("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
         }
-
-        // if (true)
-        // {
-        //     state->cluster.cluster_id = *cluster_id;
-        //     nan_timer_sync_time(&state->timer, now_usec, timestamp);
-        //     log_debug("Joined new cluster: %s", ether_addr_to_string(cluster_id));
-        // }
-        // else
-        // {
-        //     log_debug("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
-        //     log_trace("Found cluster with lower cluster grade: %s", ether_addr_to_string(cluster_id));
-        // }
     }
     else if (beacon_type == NAN_SYNC_BEACON)
     {
