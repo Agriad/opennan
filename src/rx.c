@@ -304,23 +304,13 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     struct oui oui;
     uint8_t oui_type;
 
-    // log_debug("nan parse beacon header: timestamp before d - %d", timestamp);
-    // log_debug("nan parse beacon header: timestamp before le - %le", timestamp);
-
     read_le64(frame, timestamp);
-    // log_debug("nan parse beacon header: frame timestamp d - %d", frame);
-    // log_debug("nan parse beacon header: frame timestamp le - %le", frame);
-    // log_debug("nan parse beacon header: timestamp after d - %d", timestamp);
-    // log_debug("nan parse beacon header: timestamp after le - %le", timestamp);
-    // log_debug("nan parse beacon header: timestamp after lld - %lld", *timestamp);
     read_le16(frame, &beacon_interval);
     read_le16(frame, &capability);
     read_u8(frame, &element_id);
     read_u8(frame, &length);
     read_bytes_copy(frame, (uint8_t *)&oui, OUI_LEN);
     read_u8(frame, &oui_type);
-
-    // log_debug("nan parse beacon header: timestamp - %d", frame);
 
     if (buf_error(frame))
         return RX_TOO_SHORT;
@@ -334,8 +324,6 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
         log_warn("Unknown beacon interval %d", beacon_interval);
         return RX_UNEXPECTED_TYPE;
     }
-
-    // log_debug("nan parse beacon header: rx ok");
 
     return RX_OK;
 }
