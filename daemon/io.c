@@ -369,52 +369,6 @@ void io_state_free(struct io_state *state)
 
 int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
 {
-    // uint8_t address_difference = 35;
-    // uint8_t *first_address = *buffer;
-    // uint8_t math_output = (first_address + address_difference);
-    // log_debug("wlan send: buffer stuff - %x", buffer);
-    // log_debug("wlan send: buffer stuff - %x", buffer);
-    // log_debug("wlan send: first address - %x", first_address);
-    // log_debug("wlan send: address difference - %x", address_difference);
-    // log_debug("wlan send: nothing - %x", math_output);
-    // log_debug("wlan send: address - %x", &math_output);
-    // log_debug("wlan send: address math - %x", buffer + address_difference);
-    // log_debug("wlan send: length - %d", length);
-
-    int new_length = length + 8;
-    uint8_t test[new_length];
-    uint8_t timestamp_temp[8];
-    memcpy(test, buffer, length);
-
-    for(int i = 35; i < 43; i++) {
-        timestamp_temp[i - 35] = buffer[i];
-
-        // log_debug("wlan send: buffer - %d : %x", i, buffer[i]);
-        // log_debug("wlan send: timestamp temp - %d : %x", i - 35, timestamp_temp[i - 35]);
-    }
-
-    for(int i = length; i < new_length; i++) {
-        test[i] = timestamp_temp[i - length];
-        // test[i] = 0x12;
-
-        // log_debug("wlan send: test - %d : %x", i, test[i]);
-        // log_debug("wlan send: timestamp temp - %d : %x", i - length, timestamp_temp[i - length]);
-    }
-
-    // for(int i = 0; i < new_length; i++) {
-    //     log_debug("wlan send: for loop - %d: %x", i, *(buffer + i));
-    //     log_debug("wlan send: for loop - %d: %x", i, *(test + i));
-    // }
-
-    // struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame*) (buffer + address_difference);
-    // log_debug("wlan send: time stamp - %lld", beacon_header -> time_stamp);
-
-    // uint8_t buffer_all1[length];
-
-    // for(int i = 0; i < length; i++) {
-    //     buffer_all1[i] = 0xff;
-    // }
-
     if (!state || !state->wlan_handle)
         return -EINVAL;
 
@@ -525,16 +479,9 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     // own_buffer[42] = 0x12;
     // own_buffer[43] = 0x12;
 
-    // int result = pcap_inject(state->wlan_handle, buffer, length);
-    int result = pcap_inject(state->wlan_handle, test, new_length);
-    // int result = pcap_inject(state->wlan_handle, own_buffer, sizeof(own_buffer) / sizeof(own_buffer[0]));
-    // int result1 = pcap_sendpacket(state->wlan_handle, buffer_all1, length);
-    // int result = 1;
-    for(int i = 0; i < new_length; i++) {
-        // log_debug("wlan send: for loop 2 - %d: %x", i, *(test + i));
-    }
+    int result = pcap_inject(state->wlan_handle, buffer, length);
+    // int result = pcap_inject(state->wlan_handle, test, new_length);
 
-    // log_debug("wlan send: pcap inject result - %d", result);
     if (result < 0)
         log_error("unable to inject packet (%s)", pcap_geterr(state->wlan_handle));
     else
