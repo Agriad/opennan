@@ -50,4 +50,7 @@ else ()
     target_link_libraries(nan_daemon nl-3 nl-genl-3 nl-route-3)
 endif ()
 
+find_package(OpenSSL REQUIRED)
+target_link_libraries(nan_daemon OpenSSL::Crypto)
+
 install(TARGETS nan_daemon DESTINATION bin)
