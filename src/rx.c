@@ -4,6 +4,8 @@
 #include <errno.h>
 #include <radiotap.h>
 #include <radiotap_iter.h>
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
 
 #include "rx.h"
 #include "attributes.h"
@@ -328,6 +330,8 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     return RX_OK;
 }
 
+// gets the timestamp from the secondary data location (4 bytes after original message)
+// and combines them with the largest 4 bytes digit of own timer. 
 uint64_t fix_timestamp(uint8_t *buffer, uint64_t synced_time_usec)
 {
     uint8_t synced_time_usec_buffer[8];
@@ -376,11 +380,40 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
                   const struct ether_addr *peer_address, const struct ether_addr *cluster_id,
                   const signed char rssi, const uint64_t now_usec)
 {
+    uint8_t *buffer = buf_data(frame);
+    size_t buffer_size = buf_size(frame);
+
+    // check HMAC
+    uint8_t hmac_sent[8];
+
+    for (int i = 0; i < 8; i++)
+    {
+        hmac_sent[i] = buffer[buffer_size - 9 + i];
+    }
+
+    uint8_t *message_buffer[buffer_size - 8];
+
+    memcpy(&message_buffer, buffer, buffer_size - 8);
+
+    unsigned char *hmac = HMAC(EVP_sha256(), 
+        "example_key", 
+        strlen("example_key"), 
+        message_buffer, 
+        64,
+        NULL,
+        NULL);
+
+    for (int i = 0; i < 8; i++)
+    {
+        if (hmac[i] != hmac_sent[i])
+        {
+            return 1;
+        }
+    }
+
     uint64_t timestamp = 0;
     int beacon_type = 0;
     int result = 0;
-
-    uint8_t *buffer = buf_data(frame);
 
     uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
 
@@ -391,7 +424,7 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
 
     uint64_t synced_time_usec = nan_timer_get_synced_time_usec(&state->timer, now_usec);
 
-    if (buf_size > 94)
+    if (buffer_size > 94)
     {
         timestamp = fix_timestamp(&buffer, synced_time_usec);
     }
