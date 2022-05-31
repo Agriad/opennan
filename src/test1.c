@@ -1,22 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
 
 #include <pcap/pcap.h>
 
 int main() {
-    char pcap_errbuf[PCAP_ERRBUF_SIZE];
-    pcap_errbuf[0]='\0';
-    char* if_name = "wlx00c0caae6579";
+    // char pcap_errbuf[PCAP_ERRBUF_SIZE];
+    // pcap_errbuf[0]='\0';
+    // char* if_name = "wlx00c0caae6579";
 
-    pcap_t* pcap=pcap_open_live(if_name,96,0,0,pcap_errbuf);
-    printf("here1\n");
-    if (pcap_errbuf[0]!='\0') {
-        fprintf(stderr,"%s",pcap_errbuf);
-    }
-    printf("here2\n");
-    if (!pcap) {
-        exit(1);
-    }
+    // pcap_t* pcap=pcap_open_live(if_name,96,0,0,pcap_errbuf);
+    // printf("here1\n");
+    // if (pcap_errbuf[0]!='\0') {
+    //     fprintf(stderr,"%s",pcap_errbuf);
+    // }
+    // printf("here2\n");
+    // if (!pcap) {
+    //     exit(1);
+    // }
 
     // service test crashing message
     // uint8_t own_buffer[] = {
@@ -202,15 +205,23 @@ int main() {
     own_buffer[42] = 0x12;
     own_buffer[43] = 0x12;
 
+    unsigned char *hash = HMAC(EVP_sha256(), 
+        "example_key", 
+        strlen("example_key"), 
+        own_buffer, 
+        64,
+        NULL,
+        NULL);
 
+    printf("wlan send: hash length - %ld\n", sizeof(hash) / sizeof(hash[0]));
 
-    if (pcap_inject(pcap,&own_buffer,sizeof(own_buffer))==-1) {
-        pcap_perror(pcap,0);
-        pcap_close(pcap);
-        exit(1);
+    // if (pcap_inject(pcap,&own_buffer,sizeof(own_buffer))==-1) {
+    //     pcap_perror(pcap,0);
+    //     pcap_close(pcap);
+    //     exit(1);
 
-        pcap_close(pcap);
-    }
+    //     pcap_close(pcap);
+    // }
 
     printf("here3\n");
 
@@ -224,3 +235,9 @@ int main() {
     //     pcap_close(pcap);
     // }
 }
+
+/*
+
+gcc test1.c -o test1 -lpcap -lev -I/usr/include/libnl3 $(pkg-config --cflags --libs libnl-3.0 libnl-genl-3.0 libnl-route-3.0 openssl)
+
+*/
