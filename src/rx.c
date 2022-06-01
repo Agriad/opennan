@@ -393,16 +393,17 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
 
     for (int i = 0; i < buffer_size; i++)
     {
-        log_debug("nan rx beacon: %i, %x", i, buffer[i]);
+        log_debug("nan rx beacon: all buffer %i, %x", i, buffer[i]);
     }
 
-    uint8_t *message_buffer[buffer_size - 8];
+    uint8_t *message_buffer[buffer_size - 8 - 24];
 
     // memcpy(&message_buffer, buffer, buffer_size - 8);
 
-    for (int i = 40; i < buffer_size - 8; i++)
+    for (int i = 24; i < buffer_size - 8; i++)
     {
-        message_buffer[i - 40] = buffer[i];
+        message_buffer[i - 24] = buffer[i];
+        log_debug("nan rx beacon: message buffer %i, %x", i, buffer[i]);
     }
 
     unsigned char *hmac = HMAC(EVP_sha256(), 
@@ -415,7 +416,7 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
 
     for (int i = 0; i < 8; i++)
     {
-        log_debug("nan rx beacon: %i, %x", i, hmac[i]);
+        log_debug("nan rx beacon: hmac %i, %x", i, hmac[i]);
     }
 
     for (int i = 0; i < 8; i++)

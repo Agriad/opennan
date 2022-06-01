@@ -477,16 +477,16 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     // own_buffer[42] = 0x12;
     // own_buffer[43] = 0x12;
 
-    uint8_t to_hmac[length - 11];
+    uint8_t to_hmac[length - 12];
 
     // for (int i = 11; i < length; i++)
     // {
     //     to_hmac[i - 11] = buffer[i];
     // }
 
-    for (int i = 11; i < sizeof(own_buffer) / sizeof(own_buffer[0]) - 12; i++)
+    for (int i = 12; i < sizeof(own_buffer) / sizeof(own_buffer[0]) - 12; i++)
     {
-        to_hmac[i - 11] = own_buffer[i];
+        to_hmac[i - 12] = own_buffer[i];
     }
 
     unsigned char *hmac = HMAC(EVP_sha256(), 
