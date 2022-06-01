@@ -305,6 +305,8 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     uint8_t length;
     struct oui oui;
     uint8_t oui_type;
+    uint8_t time_stamp_backup;
+    uint8_t hmac;
 
     read_le64(frame, timestamp);
     read_le16(frame, &beacon_interval);
@@ -313,6 +315,11 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     read_u8(frame, &length);
     read_bytes_copy(frame, (uint8_t *)&oui, OUI_LEN);
     read_u8(frame, &oui_type);
+    read_le32(frame, &time_stamp_backup);
+    read_u8(frame, &hmac);
+
+    log_debug("nan parse beacon header: time stamp backup - %x", time_stamp_backup);
+    log_debug("nan parse beacon header: hmac - %x", hmac);
 
     if (buf_error(frame))
         return RX_TOO_SHORT;
@@ -391,10 +398,10 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
         hmac_sent[i] = buffer[buffer_size - 8 + i];
     }
 
-    for (int i = 0; i < buffer_size; i++)
-    {
-        log_debug("nan rx beacon: all buffer %i, %x", i, buffer[i]);
-    }
+    // for (int i = 0; i < buffer_size; i++)
+    // {
+    //     log_debug("nan rx beacon: all buffer %i, %x", i, buffer[i]);
+    // }
 
     uint8_t *message_buffer[buffer_size - 8 - 24];
 
@@ -403,9 +410,9 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     for (int i = 24; i < buffer_size - 8; i++)
     {
         message_buffer[i - 24] = buffer[i];
-        log_debug("nan rx beacon: message buffer %i, %x", i, buffer[i]);
+        // log_debug("nan rx beacon: message buffer %i, %x", i, buffer[i]);
     }
-
+    
     unsigned char *hmac = HMAC(EVP_sha256(), 
         "example_key", 
         strlen("example_key"), 
@@ -414,10 +421,10 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
         NULL,
         NULL);
 
-    for (int i = 0; i < 8; i++)
-    {
-        log_debug("nan rx beacon: hmac %i, %x", i, hmac[i]);
-    }
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     log_debug("nan rx beacon: hmac %i, %x", i, hmac[i]);
+    // }
 
     for (int i = 0; i < 8; i++)
     {
@@ -432,6 +439,8 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     int result = 0;
 
     uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
+
+    log_debug("nan rx beacon: here");
 
     if ((result = nan_parse_beacon_header(frame, &beacon_type, &timestamp)) != RX_OK)
     {

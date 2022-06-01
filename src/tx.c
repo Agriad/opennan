@@ -235,12 +235,25 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
     struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)buf_current(buf);
     uint64_t synced_time = nan_timer_get_synced_time_usec(&state->timer, now_usec);
 
-    beacon_header->time_stamp = htole64(synced_time);
+    uint64_t le_timestamp = htole64(synced_time);
+
+    beacon_header->time_stamp = le_timestamp;
     beacon_header->capability = htole16(0x0420);
     beacon_header->element_id = 0xdd;
     beacon_header->length = 4;
     beacon_header->oui = NAN_OUI;
     beacon_header->oui_type = NAN_OUI_TYPE_BEACON;
+
+    uint8_t timestamp_temp[4];
+
+    for (int i = 0; i < 4; i++)
+    {
+        timestamp_temp[i] = *(&le_timestamp + i);
+    }
+
+    // beacon_header->time_stamp_backup = timestamp_temp;
+    beacon_header->time_stamp_backup = 0x12121212;
+    beacon_header->hmac = 0x1212121212121212;
 
     if (type == NAN_SYNC_BEACON)
         beacon_header->beacon_interval = NAN_SYNC_BEACON_INTERVAL_TU;

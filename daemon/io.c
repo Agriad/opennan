@@ -397,7 +397,7 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
         0xca,
         0xae,
         0x65,
-        0x79,
+        0x47,
         0x50,
         0x6f,
         0x9a,
@@ -437,7 +437,7 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
         0xca,
         0xae,
         0x65,
-        0x79,
+        0x47,
         0x00,
         0x00,
         0x00,
@@ -487,7 +487,7 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
     for (int i = 12; i < sizeof(own_buffer) / sizeof(own_buffer[0]) - 12; i++)
     {
         to_hmac[i - 12] = own_buffer[i];
-    }
+    }   
 
     unsigned char *hmac = HMAC(EVP_sha256(), 
         "example_key", 
@@ -502,16 +502,16 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
         own_buffer[(sizeof(own_buffer) / sizeof(own_buffer[0])) - 12 + i] = hmac[i]; 
     }
 
-    for (int i = 0; i < sizeof(own_buffer) / sizeof(own_buffer[0]); i++)
-    {
-        log_debug("wlan send: buffer %i - %x", i, own_buffer[i]);
-    }
+    // for (int i = 0; i < sizeof(own_buffer) / sizeof(own_buffer[0]); i++)
+    // {
+    //     log_debug("wlan send: buffer %i - %x", i, own_buffer[i]);
+    // }
 
-    log_debug("wlan send: buffer size %i", sizeof(own_buffer) / sizeof(own_buffer[0]));
+    // log_debug("wlan send: buffer size %i", sizeof(own_buffer) / sizeof(own_buffer[0]));
 
-    // int result = pcap_inject(state->wlan_handle, buffer, length);
+    int result = pcap_inject(state->wlan_handle, buffer, length);
 
-    int result = pcap_inject(state->wlan_handle, own_buffer, sizeof(own_buffer) / sizeof(own_buffer[0]));
+    // int result = pcap_inject(state->wlan_handle, own_buffer, sizeof(own_buffer) / sizeof(own_buffer[0]));
 
     if (result < 0)
         log_error("unable to inject packet (%s)", pcap_geterr(state->wlan_handle));

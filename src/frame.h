@@ -45,6 +45,8 @@ struct nan_beacon_frame
     uint8_t length;
     struct oui oui;
     uint8_t oui_type;
+    uint8_t time_stamp_backup;
+    uint8_t hmac;
 } __attribute__((__packed__));
 
 enum nan_action_frame_subtype

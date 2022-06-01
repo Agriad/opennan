@@ -269,6 +269,18 @@ void nan_receive_frame(uint8_t *user, const struct pcap_pkthdr *header, const ui
         log_debug("nan receive frame: found 47");
     }
 
+    // for (int i = 0; i < header->caplen; i++)
+    // {
+    //     log_debug("nan receive frame: buffer - %i, %x", i, buf[i]);
+    // }
+
+    uint8_t *message_buffer = buf_data(frame);
+
+    // for (int i = 0; i < header->caplen; i++)
+    // {
+    //     log_debug("nan receive: message buffer - %i, %x", i, message_buffer[i]);
+    // }
+
     int result = nan_rx(frame, &state->nan_state);
     if (result < RX_OK)
     {
