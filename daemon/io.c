@@ -464,76 +464,50 @@ int wlan_send(const struct io_state *state, const uint8_t *buffer, int length)
         0x12,
         0x12,
         0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
-        0x12,
         0x12
     };
 
-    own_buffer[35] = 0x12;
-    own_buffer[36] = 0x12;
-    own_buffer[37] = 0x12;
-    own_buffer[38] = 0x12;
-    own_buffer[39] = 0x12;
-    own_buffer[40] = 0x12;
-    own_buffer[41] = 0x12;
-    own_buffer[42] = 0x12;
-    own_buffer[43] = 0x12;
+    // own_buffer[35] = 0x12;
+    // own_buffer[36] = 0x12;
+    // own_buffer[37] = 0x12;
+    // own_buffer[38] = 0x12;
+    // own_buffer[39] = 0x12;
+    // own_buffer[40] = 0x12;
+    // own_buffer[41] = 0x12;
+    // own_buffer[42] = 0x12;
+    // own_buffer[43] = 0x12;
+
+    uint8_t to_hmac[length - 11];
+
+    // for (int i = 11; i < length; i++)
+    // {
+    //     to_hmac[i - 11] = buffer[i];
+    // }
+
+    for (int i = 11; i < sizeof(own_buffer) / sizeof(own_buffer[0]) - 12; i++)
+    {
+        to_hmac[i - 11] = own_buffer[i];
+    }
 
     unsigned char *hmac = HMAC(EVP_sha256(), 
         "example_key", 
         strlen("example_key"), 
-        own_buffer, 
+        to_hmac, 
         64,
         NULL,
         NULL);
 
-    log_debug("wlan send: hmac length - %d", sizeof(hmac) / sizeof(hmac[0]));
+    for (int i = 0; i < 8; i++)
+    {
+        own_buffer[(sizeof(own_buffer) / sizeof(own_buffer[0])) - 12 + i] = hmac[i]; 
+    }
+
+    for (int i = 0; i < sizeof(own_buffer) / sizeof(own_buffer[0]); i++)
+    {
+        log_debug("wlan send: buffer %i - %x", i, own_buffer[i]);
+    }
+
+    log_debug("wlan send: buffer size %i", sizeof(own_buffer) / sizeof(own_buffer[0]));
 
     // int result = pcap_inject(state->wlan_handle, buffer, length);
 
