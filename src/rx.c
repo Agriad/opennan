@@ -70,6 +70,14 @@ int nan_parse_master_indication_attribute(struct buf *buf, struct nan_peer *peer
     read_u8(buf, &master_preference);
     read_u8(buf, &random_factor);
 
+    uint8_t time_stamp_backup;
+    uint8_t hmac;
+    read_le16(buf, &time_stamp_backup);
+    read_le16(buf, &hmac);
+
+    log_debug("nan parse master indication attribute: time stamp backup - %x", time_stamp_backup);
+    log_debug("nan parse master indication attribute: hmac - %x", hmac);
+
     if (buf_error(buf))
         return RX_TOO_SHORT;
 
@@ -95,6 +103,14 @@ int nan_parse_cluster_attribute(struct buf *buf, struct nan_peer *peer)
     read_le64(buf, &anchor_master_rank);
     read_u8(buf, &hop_count);
     read_le32(buf, &ambtt);
+
+    uint8_t time_stamp_backup;
+    uint8_t hmac;
+    read_le16(buf, &time_stamp_backup);
+    read_le16(buf, &hmac);
+
+    log_debug("nan parse cluster attribute: time stamp backup - %x", time_stamp_backup);
+    log_debug("nan parse cluster attribute: hmac - %x", hmac);
 
     if (buf_error(buf))
         return RX_TOO_SHORT;
@@ -315,8 +331,8 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     read_u8(frame, &length);
     read_bytes_copy(frame, (uint8_t *)&oui, OUI_LEN);
     read_u8(frame, &oui_type);
-    read_le32(frame, &time_stamp_backup);
-    read_u8(frame, &hmac);
+    read_le16(frame, &time_stamp_backup);
+    read_le16(frame, &hmac);
 
     log_debug("nan parse beacon header: time stamp backup - %x", time_stamp_backup);
     log_debug("nan parse beacon header: hmac - %x", hmac);

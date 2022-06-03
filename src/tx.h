@@ -5,6 +5,7 @@
 #include <net/ethernet.h>
 
 #include "state.h"
+#include "wire.h"
 #include "frame.h"
 #include "service.h"
 #include "data_path.h"

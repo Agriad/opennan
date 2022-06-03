@@ -9,6 +9,7 @@
 #include "log.h"
 #include "utils.h"
 #include "circular_buffer.h"
+#include "wire.h"
 
 bool nan_can_send_discovery_beacon(const struct nan_state *state, uint64_t now_usec)
 {
@@ -28,6 +29,8 @@ int nan_add_master_indication_attribute(struct buf *buf, const struct nan_state 
     attribute->length = htole32(2);
     attribute->master_preference = state->sync.master_preference;
     attribute->random_factor = state->sync.random_factor;
+    attribute->time_stamp_backup = htole16(0x1313);
+    attribute->hmac = htole16(0x1414);
     
     buf_advance(buf, sizeof(struct nan_master_indication_attribute));
 
@@ -42,6 +45,8 @@ int nan_add_cluster_attribute(struct buf *buf, const struct nan_state *state)
     attribute->anchor_master_rank = htole64(state->sync.anchor_master_rank);
     attribute->hop_count = state->sync.hop_count;
     attribute->anchor_master_beacon_transmission_time = htole32(state->sync.ambtt);
+    attribute->time_stamp_backup = htole16(0x1515);
+    attribute->hmac = htole16(0x1616);
 
     buf_advance(buf, sizeof(struct nan_cluster_attribute));
 
@@ -252,8 +257,9 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
     }
 
     // beacon_header->time_stamp_backup = timestamp_temp;
-    beacon_header->time_stamp_backup = 0x12121212;
-    beacon_header->hmac = 0x1212121212121212;
+    // beacon_header->time_stamp_backup = htole32(0x12121212);
+    beacon_header->time_stamp_backup = htole16(0x1111);
+    beacon_header->hmac = htole16(0x1212);
 
     if (type == NAN_SYNC_BEACON)
         beacon_header->beacon_interval = NAN_SYNC_BEACON_INTERVAL_TU;
@@ -263,6 +269,13 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
     *data_length = &beacon_header->length;
 
     buf_advance(buf, sizeof(struct nan_beacon_frame));
+
+    // uint8_t buffer_data = buf_data(buf);
+
+    // for (int i = 0; i < sizeof(struct nan_beacon_frame); i++)
+    // {
+    //     log_debug("nan add beacon frame: buffer - %i, %x", i, *(&buffer_data + i));
+    // }
 }
 
 void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
@@ -271,10 +284,27 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
     uint8_t *data_length;
     nan_add_beacon_header(buf, state, type, &data_length, now_usec);
 
+    uint8_t buffer_data = buf_data(buf);
+    for (int i = 0; i < (int)*data_length; i++)
+    {
+        log_debug("nan build beacon frame: buffer2 - %i, %x", i, *(&buffer_data + i));
+    }
+
     uint8_t attributes_length = 0;
     attributes_length += nan_add_master_indication_attribute(buf, state);
 
+    buffer_data = buf_data(buf);
+    for (int i = 0; i < (int)*data_length + attributes_length; i++)
+    {
+        log_debug("nan build beacon frame: buffer3 - %i, %x", i, *(&buffer_data + i));
+    }
+
     attributes_length += nan_add_cluster_attribute(buf, state);
+
+    for (int i = 0; i < (int)*data_length + attributes_length; i++)
+    {
+        log_debug("nan build beacon frame: buffer4 - %i, %x", i, *(&buffer_data + i));
+    }
 
     *data_length += attributes_length;
 
