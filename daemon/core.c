@@ -124,20 +124,21 @@ void nan_send_beacon(struct daemon_state *state, enum nan_beacon_type type, uint
 
     uint8_t *buffer = buf_data(buf);
 
-    int new_length = length + 8;
-    uint8_t new_buffer[new_length];
-    uint8_t timestamp_temp[8];
-    memcpy(new_buffer, buffer, length);
+    // int new_length = length + 8;
+    // uint8_t new_buffer[new_length];
+    // uint8_t timestamp_temp[8];
+    // memcpy(new_buffer, buffer, length);
 
-    for(int i = 35; i < 43; i++) {
-        timestamp_temp[i - 35] = buffer[i];
-    }
+    // for(int i = 35; i < 43; i++) {
+    //     timestamp_temp[i - 35] = buffer[i];
+    // }
 
-    for(int i = length; i < new_length; i++) {
-        new_buffer[i] = timestamp_temp[i - length];
-    }
+    // for(int i = length; i < new_length; i++) {
+    //     new_buffer[i] = timestamp_temp[i - length];
+    // }
 
-    int err = wlan_send(&state->io_state, new_buffer, new_length);
+    // int err = wlan_send(&state->io_state, new_buffer, new_length);
+    int err = wlan_send(&state->io_state, buffer, length);
     if (err < 0)
         log_error("Could not send frame: %d", err);
 }
