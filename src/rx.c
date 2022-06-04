@@ -70,13 +70,13 @@ int nan_parse_master_indication_attribute(struct buf *buf, struct nan_peer *peer
     read_u8(buf, &master_preference);
     read_u8(buf, &random_factor);
 
-    uint8_t time_stamp_backup;
-    uint8_t hmac;
-    read_le16(buf, &time_stamp_backup);
-    read_le16(buf, &hmac);
+    // uint8_t time_stamp_backup;
+    // uint8_t hmac;
+    // read_le16(buf, &time_stamp_backup);
+    // read_le16(buf, &hmac);
 
-    log_debug("nan parse master indication attribute: time stamp backup - %x", time_stamp_backup);
-    log_debug("nan parse master indication attribute: hmac - %x", hmac);
+    // log_debug("nan parse master indication attribute: time stamp backup - %x", time_stamp_backup);
+    // log_debug("nan parse master indication attribute: hmac - %x", hmac);
 
     if (buf_error(buf))
         return RX_TOO_SHORT;
@@ -104,13 +104,13 @@ int nan_parse_cluster_attribute(struct buf *buf, struct nan_peer *peer)
     read_u8(buf, &hop_count);
     read_le32(buf, &ambtt);
 
-    uint8_t time_stamp_backup;
-    uint8_t hmac;
-    read_le16(buf, &time_stamp_backup);
-    read_le16(buf, &hmac);
+    // uint8_t time_stamp_backup;
+    // uint8_t hmac;
+    // read_le16(buf, &time_stamp_backup);
+    // read_le16(buf, &hmac);
 
-    log_debug("nan parse cluster attribute: time stamp backup - %x", time_stamp_backup);
-    log_debug("nan parse cluster attribute: hmac - %x", hmac);
+    // log_debug("nan parse cluster attribute: time stamp backup - %x", time_stamp_backup);
+    // log_debug("nan parse cluster attribute: hmac - %x", hmac);
 
     if (buf_error(buf))
         return RX_TOO_SHORT;
@@ -728,8 +728,9 @@ int nan_rx(struct buf *frame, struct nan_state *state)
 
     if (ether_addr_equal(source_address, &state->self_address))
         return RX_IGNORE_FROM_SELF;
-    // else if (ether_addr_equal(source_address, other_opennan_ether_addr))
-    //     return RX_IGNORE_FROM_SELF;
+    else if (ether_addr_equal(source_address, other_opennan_ether_addr))
+        log_debug("nan rx: received from 47");
+        // return RX_IGNORE_FROM_SELF;
 
     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
         return RX_TOO_SHORT;

@@ -29,8 +29,8 @@ int nan_add_master_indication_attribute(struct buf *buf, const struct nan_state 
     attribute->length = htole32(2);
     attribute->master_preference = state->sync.master_preference;
     attribute->random_factor = state->sync.random_factor;
-    attribute->time_stamp_backup = htole16(0x1313);
-    attribute->hmac = htole16(0x1414);
+    // attribute->time_stamp_backup = htole16(0x1313);
+    // attribute->hmac = htole16(0x1414);
     
     buf_advance(buf, sizeof(struct nan_master_indication_attribute));
 
@@ -45,8 +45,8 @@ int nan_add_cluster_attribute(struct buf *buf, const struct nan_state *state)
     attribute->anchor_master_rank = htole64(state->sync.anchor_master_rank);
     attribute->hop_count = state->sync.hop_count;
     attribute->anchor_master_beacon_transmission_time = htole32(state->sync.ambtt);
-    attribute->time_stamp_backup = htole16(0x1515);
-    attribute->hmac = htole16(0x1616);
+    // attribute->time_stamp_backup = htole16(0x1515);
+    // attribute->hmac = htole16(0x1616);
 
     buf_advance(buf, sizeof(struct nan_cluster_attribute));
 
@@ -285,26 +285,26 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
     nan_add_beacon_header(buf, state, type, &data_length, now_usec);
 
     uint8_t buffer_data = buf_data(buf);
-    for (int i = 0; i < (int)*data_length; i++)
-    {
-        log_debug("nan build beacon frame: buffer2 - %i, %x", i, *(&buffer_data + i));
-    }
+    // for (int i = 0; i < (int)*data_length; i++)
+    // {
+    //     log_debug("nan build beacon frame: buffer2 - %i, %x", i, *(&buffer_data + i));
+    // }
 
     uint8_t attributes_length = 0;
     attributes_length += nan_add_master_indication_attribute(buf, state);
 
     buffer_data = buf_data(buf);
-    for (int i = 0; i < (int)*data_length + attributes_length; i++)
-    {
-        log_debug("nan build beacon frame: buffer3 - %i, %x", i, *(&buffer_data + i));
-    }
+    // for (int i = 0; i < (int)*data_length + attributes_length; i++)
+    // {
+    //     log_debug("nan build beacon frame: buffer3 - %i, %x", i, *(&buffer_data + i));
+    // }
 
     attributes_length += nan_add_cluster_attribute(buf, state);
 
-    for (int i = 0; i < (int)*data_length + attributes_length; i++)
-    {
-        log_debug("nan build beacon frame: buffer4 - %i, %x", i, *(&buffer_data + i));
-    }
+    // for (int i = 0; i < (int)*data_length + attributes_length; i++)
+    // {
+    //     log_debug("nan build beacon frame: buffer4 - %i, %x", i, *(&buffer_data + i));
+    // }
 
     *data_length += attributes_length;
 
