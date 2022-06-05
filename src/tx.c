@@ -258,8 +258,8 @@ void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum 
 
     // beacon_header->time_stamp_backup = timestamp_temp;
     // beacon_header->time_stamp_backup = htole32(0x12121212);
-    beacon_header->time_stamp_backup = htole16(0x1111);
-    beacon_header->hmac = htole16(0x1212);
+    // beacon_header->time_stamp_backup = htole16(0x1111);
+    // beacon_header->hmac = htole16(0x1212);
 
     if (type == NAN_SYNC_BEACON)
         beacon_header->beacon_interval = NAN_SYNC_BEACON_INTERVAL_TU;

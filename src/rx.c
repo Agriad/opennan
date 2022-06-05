@@ -323,8 +323,8 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     uint8_t length;
     struct oui oui;
     uint8_t oui_type;
-    uint8_t time_stamp_backup;
-    uint8_t hmac;
+    // uint8_t time_stamp_backup;
+    // uint8_t hmac;
 
     read_le64(frame, timestamp);
     read_le16(frame, &beacon_interval);
@@ -333,11 +333,11 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     read_u8(frame, &length);
     read_bytes_copy(frame, (uint8_t *)&oui, OUI_LEN);
     read_u8(frame, &oui_type);
-    read_le16(frame, &time_stamp_backup);
-    read_le16(frame, &hmac);
+    // read_le16(frame, &time_stamp_backup);
+    // read_le16(frame, &hmac);
 
-    log_debug("nan parse beacon header: time stamp backup - %x", time_stamp_backup);
-    log_debug("nan parse beacon header: hmac - %x", hmac);
+    // log_debug("nan parse beacon header: time stamp backup - %x", time_stamp_backup);
+    // log_debug("nan parse beacon header: hmac - %x", hmac);
 
     if (buf_error(frame))
         return RX_TOO_SHORT;
