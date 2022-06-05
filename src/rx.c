@@ -70,13 +70,13 @@ int nan_parse_master_indication_attribute(struct buf *buf, struct nan_peer *peer
     read_u8(buf, &master_preference);
     read_u8(buf, &random_factor);
 
-    // uint8_t time_stamp_backup;
-    // uint8_t hmac;
-    // read_le16(buf, &time_stamp_backup);
-    // read_le16(buf, &hmac);
+    uint8_t time_stamp_backup;
+    uint8_t hmac;
+    read_le16(buf, &time_stamp_backup);
+    read_le16(buf, &hmac);
 
-    // log_debug("nan parse master indication attribute: time stamp backup - %x", time_stamp_backup);
-    // log_debug("nan parse master indication attribute: hmac - %x", hmac);
+    log_debug("nan parse master indication attribute: time stamp backup - %x", time_stamp_backup);
+    log_debug("nan parse master indication attribute: hmac - %x", hmac);
 
     if (buf_error(buf))
         return RX_TOO_SHORT;
@@ -104,13 +104,13 @@ int nan_parse_cluster_attribute(struct buf *buf, struct nan_peer *peer)
     read_u8(buf, &hop_count);
     read_le32(buf, &ambtt);
 
-    // uint8_t time_stamp_backup;
-    // uint8_t hmac;
-    // read_le16(buf, &time_stamp_backup);
-    // read_le16(buf, &hmac);
+    uint8_t time_stamp_backup;
+    uint8_t hmac;
+    read_le16(buf, &time_stamp_backup);
+    read_le16(buf, &hmac);
 
-    // log_debug("nan parse cluster attribute: time stamp backup - %x", time_stamp_backup);
-    // log_debug("nan parse cluster attribute: hmac - %x", hmac);
+    log_debug("nan parse cluster attribute: time stamp backup - %x", time_stamp_backup);
+    log_debug("nan parse cluster attribute: hmac - %x", hmac);
 
     if (buf_error(buf))
         return RX_TOO_SHORT;
@@ -315,6 +315,8 @@ int nan_attribute_read_next(struct buf *frame, uint8_t *attribute_id,
 
 int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *timestamp)
 {
+    log_debug("nan parse beacon header: here");
+
     uint16_t beacon_interval;
     uint16_t capability;
     uint8_t element_id;
@@ -442,13 +444,13 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     //     log_debug("nan rx beacon: hmac %i, %x", i, hmac[i]);
     // }
 
-    for (int i = 0; i < 8; i++)
-    {
-        if (hmac[i] != hmac_sent[i])
-        {
-            return 1;
-        }
-    }
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     if (hmac[i] != hmac_sent[i])
+    //     {
+    //         return 1;
+    //     }
+    // }
 
     uint64_t timestamp = 0;
     int beacon_type = 0;
@@ -718,7 +720,7 @@ int nan_rx(struct buf *frame, struct nan_state *state)
         return RX_TOO_SHORT;
     }
 
-    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x47};
+    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
 
     const struct ieee80211_hdr *ieee80211 = (const struct ieee80211_hdr *)buf_current(frame);
     const struct ether_addr *destination_address = &ieee80211->addr1;
@@ -729,7 +731,7 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     if (ether_addr_equal(source_address, &state->self_address))
         return RX_IGNORE_FROM_SELF;
     else if (ether_addr_equal(source_address, other_opennan_ether_addr))
-        log_debug("nan rx: received from 47");
+        log_debug("nan rx: received from 79");
         // return RX_IGNORE_FROM_SELF;
 
     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
@@ -738,11 +740,14 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     switch (frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE))
     {
     case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON:
+        log_debug("nan rx: case 1");
         return nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
     case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION:
+        log_debug("nan rx: case 2");
         log_trace("Received action frame");
         return nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
     default:
+        log_debug("nan rx: case 3");
         log_trace("ieee80211: cannot handle type %x and subtype %x of received frame from %s",
                   frame_control & IEEE80211_FCTL_FTYPE, frame_control & IEEE80211_FCTL_STYPE, ether_addr_to_string(source_address));
         return RX_UNEXPECTED_TYPE;
