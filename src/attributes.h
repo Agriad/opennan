@@ -79,8 +79,8 @@ struct nan_master_indication_attribute
     uint16_t length;
     uint8_t master_preference;
     uint8_t random_factor;
-    uint8_t time_stamp_backup;
-    uint8_t hmac;
+    // uint16_t time_stamp_backup;
+    // uint16_t hmac;
 } __attribute__((__packed__));
 
 struct nan_cluster_attribute
@@ -90,8 +90,8 @@ struct nan_cluster_attribute
     uint64_t anchor_master_rank;
     uint8_t hop_count;
     uint32_t anchor_master_beacon_transmission_time;
-    uint8_t time_stamp_backup;
-    uint8_t hmac;
+    // uint8_t time_stamp_backup;
+    // uint8_t hmac;
 } __attribute__((__packed__));
 
 enum nan_service_control_type
