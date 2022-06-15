@@ -317,49 +317,21 @@ int nan_attribute_read_next(struct buf *frame, uint8_t *attribute_id,
 // and combines them with the largest 4 bytes digit of own timer. 
 uint64_t fix_timestamp(uint32_t timestamp_backup, uint64_t synced_time_usec)
 {
-    uint8_t temporary_time_buffer[8] = {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11};
-
-    uint64_t test64 = 0xffffffffffffffff;
-    uint32_t test32 = 0xeeeeeeee;
-    uint16_t test16 = 0xdddd;
-    uint8_t test8 = 0xcc;
-
-    synced_time_usec = 0xffffffffffffffff;
-
-    log_debug("fix timestamp: synced time usec - %lx", synced_time_usec);
+    uint8_t temporary_time_buffer[8];
 
     for (int i = 0; i < 4; i++)
     {
-        // temporary_time_buffer[i] = timestamp_backup >> 8 * i;
-        temporary_time_buffer[i] = 0x11;
-        log_debug("fix timestamp: temporary time buffer - %i %x", i, temporary_time_buffer[i]);
+        temporary_time_buffer[i] = timestamp_backup >> 8 * i;
     }
 
     for (int i = 4; i < 8; i++)
     {
         temporary_time_buffer[i] = synced_time_usec >> 8 * i;
-        log_debug("fix timestamp: temporary time buffer - %i %x", i, temporary_time_buffer[i]);
     }
-
-    for (int i = 0; i < 8; i++)
-    {
-        log_debug("fix timestamp: temporary time buffer - %i %x", i, temporary_time_buffer[i]);
-    }
-
-    log_debug("fix timestamp: uint64 t size - %d", sizeof(uint64_t));
-    log_debug("fix timestamp: test64 - %lx", test64);
-    log_debug("fix timestamp: test32 - %x", test32);
-    log_debug("fix timestamp: test16 - %x", test16);
-    log_debug("fix timestamp: test8 - %x", test8);
-
-    uint64_t onion = 0x00;
 
     uint64_t combined_timestamp = 0;
 
     memcpy(&combined_timestamp, temporary_time_buffer, sizeof(uint64_t));
-
-    // log_debug("fix timestamp: onion - %x", onion);
-    log_debug("fix timestamp: timestamp - %lx", combined_timestamp);
 
     return combined_timestamp;
 }
@@ -375,7 +347,6 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     uint32_t timestamp_backup;
     // uint64_t hmac;
 
-    // read_le64(frame, timestamp);
     read_le16(frame, &beacon_interval);
     read_le16(frame, &capability);
     read_u8(frame, &element_id);
@@ -385,19 +356,7 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     read_le32(frame, &timestamp_backup);
     // read_le64(frame, &hmac);
 
-    log_debug("nan parse beacon header: time stamp 1 - %lx", *timestamp);
-    log_debug("nan parse beacon header: time stamp backup - %x", timestamp_backup);
     *timestamp = fix_timestamp(timestamp_backup, synced_time_usec);
-    log_debug("nan parse beacon header: time stamp 2 - %lx", *timestamp);
-
-    // for (int i = 0; i < 4; i++)
-    // {
-    //     log_debug("nan parse beacon header: time stamp backup - %i, %x", i, *(&time_stamp_backup + i));
-    // }
-
-    log_debug("nan parse beacon header: time stamp backup - %x", timestamp_backup);
-    log_debug("nan parse beacon header: time stamp 3 - %lx", *timestamp);
-    // log_debug("nan parse beacon header: hmac - %x", hmac);
 
     if (buf_error(frame))
         return RX_TOO_SHORT;
