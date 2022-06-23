@@ -67,10 +67,13 @@ int nan_add_data_path_attribute(struct buf *buf, const struct nan_data_path *dat
  * @param type - The type of beacon to add
  * @param data_length - Will be filled with a pointer to the header's length field
  * @param now_usec - Current time in microseconds
+ * @param timestamp_backup - Backup timestamp since the original timestamp failed
+ * @param hmac - HMAC of the relevant information in the frame
  * @returns The length of the written header in bytes
  */
 void nan_add_beacon_header(struct buf *buf, struct nan_state *state, const enum nan_beacon_type type,
-                           uint8_t **data_length, const uint64_t now_usec);
+                           uint8_t **data_length, const uint64_t now_usec,
+                           const uint32_t timestamp_backup, const uint64_t hmac);
 
 void nan_add_service_discovery_header(struct buf *buf, struct nan_state *state, const struct ether_addr *destination);
 
