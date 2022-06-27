@@ -26,6 +26,7 @@ enum RX_RESULT
     RX_MISSING_MANDATORY_ATTRIBUTE = -5,
     RX_ATTRIBUTE_NOT_FOUND = -6,
     RX_OTHER_ERROR = -7,
+    RX_HMAC_ERROR = -8,
 };
 
 typedef int (*nan_parse_attribute)(struct buf *frame, void *data);

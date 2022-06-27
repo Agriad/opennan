@@ -285,6 +285,7 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
     uint16_t beacon_header_capability = htole16(0x0420);
     uint8_t beacon_header_element_id = 0xdd;
     uint8_t beacon_header_length = 4;
+    uint8_t beacon_header_oui_type = NAN_OUI_TYPE_BEACON;
 
     // timestamp backup
     uint8_t *beacon_header_timestamp_uint8 = &beacon_header_timestamp;
@@ -300,10 +301,10 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
     uint8_t master_indication_attribute_random_factor = state->sync.random_factor;
 
     uint32_t cluster_attribute_length = htole32(13);
-    uint64_t attribute_length_anchor_master_rank = htole64(state->sync.anchor_master_rank);
-    uint32_t attribute_length_anchor_master_beacon_transmission_time = htole32(state->sync.ambtt);
+    uint64_t cluster_attribute_length_anchor_master_rank = htole64(state->sync.anchor_master_rank);
+    uint32_t cluster_attribute_length_anchor_master_beacon_transmission_time = htole32(state->sync.ambtt);
 
-    uint8_t to_hash_buffer[49];
+    uint8_t to_hash_buffer[52];
 
     // 0-5, 6-11, 12-17
     for (int i = 0; i < 6; i++)
@@ -315,8 +316,11 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
 
     to_hash_buffer[20] = beacon_header_element_id;
     to_hash_buffer[21] = beacon_header_length;
-    to_hash_buffer[32] = master_indication_attribute_master_preference;
-    to_hash_buffer[33] = master_indication_attribute_random_factor;
+    to_hash_buffer[22] = beacon_header_oui_type;
+    to_hash_buffer[29] = MASTER_INDICATION_ATTRIBUTE;
+    to_hash_buffer[33] = master_indication_attribute_master_preference;
+    to_hash_buffer[34] = master_indication_attribute_random_factor;
+    to_hash_buffer[35] = CLUSTER_ATTRIBUTE;
 
     // 18-19
     // uint_16t
@@ -325,21 +329,21 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
         to_hash_buffer[i + 18] = beacon_header_capability >> 8 * i;
     }
 
-    // 22-25, 28-31, 34-37, 46-49
+    // 23-26, 30-33, 37-40, 49-52
     // uint_32t
     for (int i = 0; i < 4; i++)
     {
         to_hash_buffer[i + 22] = timestamp_backup >> 8 * i;
-        to_hash_buffer[i + 28] = master_indication_attribute_length >> 8 * i;
-        to_hash_buffer[i + 34] = cluster_attribute_length >> 8 * i;
-        to_hash_buffer[i + 46] = attribute_length_anchor_master_beacon_transmission_time >> 8 * i;
+        to_hash_buffer[i + 29] = master_indication_attribute_length >> 8 * i;
+        to_hash_buffer[i + 37] = cluster_attribute_length >> 8 * i;
+        to_hash_buffer[i + 49] = cluster_attribute_length_anchor_master_beacon_transmission_time >> 8 * i;
     }
 
-    // 38-45
+    // 41-48
     // uint_64t
     for (int i = 0; i < 8; i++)
     {
-        to_hash_buffer[i + 38] = attribute_length_anchor_master_rank >> 8 * i;
+        to_hash_buffer[i + 41] = cluster_attribute_length_anchor_master_rank >> 8 * i;
     }
 
     unsigned char *hmac_output = HMAC(EVP_sha256(), 
@@ -366,6 +370,7 @@ void nan_build_beacon_frame(struct buf *buf, struct nan_state *state,
 
     if (state->ieee80211.fcs)
         ieee80211_add_fcs(buf);
+}
 
 void nan_add_service_discovery_header(struct buf *buf, struct nan_state *state, const struct ether_addr *destination)
 {

@@ -7,13 +7,18 @@
 #include <pcap/pcap.h>
 
 int main() {
-    uint64_t first = 0x1122334455667788;
-    uint8_t *second = &first;
-    uint32_t third;
+    int *a;
+    int *b;
 
-    memcpy(&third, second, sizeof(uint32_t));
+    int c[2] = {1, 2};
+    a = c;
 
-    printf("third: %x", third);
+    // *b = *a;
+    // *(&b + 1) = *(&a + 1);
+
+    printf("a 0 %d", *a);
+    // printf("b 0 %d", *b);
+    // printf("b 1 %d", *(&b + 1));
 }
 
 /*

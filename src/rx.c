@@ -104,8 +104,8 @@ int nan_parse_cluster_attribute(struct buf *buf, struct nan_peer *peer)
     read_u8(buf, &hop_count);
     read_le32(buf, &ambtt);
 
-    uint8_t time_stamp_backup;
-    uint8_t hmac;
+    // uint8_t time_stamp_backup;
+    // uint8_t hmac;
     // read_le16(buf, &time_stamp_backup);
     // read_le16(buf, &hmac);
 
@@ -380,39 +380,39 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
                   const struct ether_addr *peer_address, const struct ether_addr *cluster_id,
                   const signed char rssi, const uint64_t now_usec)
 {
-    uint8_t *buffer = buf_data(frame);
-    size_t buffer_size = buf_size(frame);
+    // const uint8_t *buffer = buf_data(frame);
+    // size_t buffer_size = buf_size(frame);
 
     // check HMAC
-    uint8_t hmac_sent[8];
+    // uint8_t hmac_sent[8];
 
-    for (int i = 0; i < 8; i++)
-    {
-        hmac_sent[i] = buffer[buffer_size - 8 + i];
-    }
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     hmac_sent[i] = buffer[buffer_size - 8 + i];
+    // }
 
     // for (int i = 0; i < buffer_size; i++)
     // {
     //     log_debug("nan rx beacon: all buffer %i, %x", i, buffer[i]);
     // }
 
-    uint8_t *message_buffer[buffer_size - 8 - 24];
+    // uint8_t message_buffer[buffer_size - 8 - 24];
 
     // memcpy(&message_buffer, buffer, buffer_size - 8);
 
-    for (int i = 24; i < buffer_size - 8; i++)
-    {
-        message_buffer[i - 24] = buffer[i];
-        // log_debug("nan rx beacon: message buffer %i, %x", i, buffer[i]);
-    }
+    // for (int i = 24; i < (int) buffer_size - 8; i++)
+    // {
+    //     message_buffer[i - 24] = buffer[i];
+    //     // log_debug("nan rx beacon: message buffer %i, %x", i, buffer[i]);
+    // }
     
-    unsigned char *hmac = HMAC(EVP_sha256(), 
-        "example_key", 
-        strlen("example_key"), 
-        message_buffer, 
-        64,
-        NULL,
-        NULL);
+    // unsigned char *hmac = HMAC(EVP_sha256(), 
+    //     "example_key", 
+    //     strlen("example_key"), 
+    //     message_buffer, 
+    //     64,
+    //     NULL,
+    //     NULL);
 
     // for (int i = 0; i < 8; i++)
     // {
@@ -432,7 +432,7 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     int result = 0;
     uint32_t timestamp_backup = 0;
 
-    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
+    // uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
 
     log_debug("nan rx beacon: here");
 
@@ -675,6 +675,121 @@ int nan_rx_action(struct buf *frame, struct nan_state *state,
     return RX_OK;
 }
 
+int check_hmac_beacon(const struct ieee80211_hdr *ieee80211, struct buf *frame)
+{
+    log_debug("check hmac beacon 1");
+    const struct ether_addr *destination_address_struct = &ieee80211->addr1;
+    const struct ether_addr *source_address_struct = &ieee80211->addr2;
+    const struct ether_addr *bssid_id_struct = &ieee80211->addr3;
+
+    const uint8_t *destination_address = destination_address_struct->ether_addr_octet;
+    const uint8_t *source_address = source_address_struct->ether_addr_octet;
+    const uint8_t *bssid_address = bssid_id_struct->ether_addr_octet;
+
+    struct nan_beacon_frame *beacon_header = (struct nan_beacon_frame *)buf_current(frame);
+
+    // uint64_t beacon_header_timestamp = beacon_header->time_stamp; // not used
+    uint16_t beacon_header_capability = beacon_header->capability;
+    uint8_t beacon_header_element_id = beacon_header->element_id;
+    uint8_t beacon_header_length = beacon_header->length;
+    uint8_t beacon_header_oui_type = beacon_header->oui_type;
+
+    uint32_t timestamp_backup = beacon_header->time_stamp_backup;
+
+    uint64_t sent_hmac = beacon_header->hmac;
+
+    struct nan_master_indication_attribute *master_indication_attribute = 
+        (struct nan_master_indication_attribute *)(buf_current(frame) + sizeof(struct nan_beacon_frame));
+
+    uint8_t master_indication_id = master_indication_attribute->id;
+    uint32_t master_indication_attribute_length = master_indication_attribute->length;
+    uint8_t master_indication_attribute_master_preference = master_indication_attribute->master_preference;
+    uint8_t master_indication_attribute_random_factor = master_indication_attribute->random_factor;
+
+    struct nan_cluster_attribute *cluster_attribute = 
+        (struct nan_cluster_attribute *)(buf_current(frame) + 
+        sizeof(struct nan_beacon_frame) + sizeof(struct nan_master_indication_attribute));
+
+    uint8_t cluster_attribute_id = cluster_attribute->id;
+    uint32_t cluster_attribute_length = cluster_attribute->length;
+    uint64_t cluster_attribute_length_anchor_master_rank = cluster_attribute->anchor_master_rank;
+    uint32_t cluster_attribute_length_anchor_master_beacon_transmission_time = cluster_attribute->anchor_master_beacon_transmission_time;
+
+    log_debug("check hmac beacon 2");
+
+    uint8_t to_hash_buffer[52];
+
+    // 0-5, 6-11, 12-17
+    for (int i = 0; i < 6; i++)
+    {
+        to_hash_buffer[i] = destination_address[i];
+        to_hash_buffer[i + 6] = source_address[i + 6];
+        to_hash_buffer[i + 12] = bssid_address[i + 12];
+    }
+
+    to_hash_buffer[20] = beacon_header_element_id;
+    to_hash_buffer[21] = beacon_header_length;
+    to_hash_buffer[22] = beacon_header_oui_type;
+    to_hash_buffer[29] = master_indication_id;
+    to_hash_buffer[33] = master_indication_attribute_master_preference;
+    to_hash_buffer[34] = master_indication_attribute_random_factor;
+    to_hash_buffer[35] = cluster_attribute_id;
+
+    // 18-19
+    // uint_16t
+    for (int i = 0; i < 2; i++)
+    {
+        to_hash_buffer[i + 18] = beacon_header_capability >> 8 * i;
+    }
+
+    // 23-26, 30-33, 37-40, 49-52
+    // uint_32t
+    for (int i = 0; i < 4; i++)
+    {
+        to_hash_buffer[i + 22] = timestamp_backup >> 8 * i;
+        to_hash_buffer[i + 29] = master_indication_attribute_length >> 8 * i;
+        to_hash_buffer[i + 37] = cluster_attribute_length >> 8 * i;
+        to_hash_buffer[i + 49] = cluster_attribute_length_anchor_master_beacon_transmission_time >> 8 * i;
+    }
+
+    // 41-48
+    // uint_64t
+    for (int i = 0; i < 8; i++)
+    {
+        to_hash_buffer[i + 41] = cluster_attribute_length_anchor_master_rank >> 8 * i;
+    }
+
+    log_debug("check hmac beacon 3");
+
+    unsigned char *hmac_output = HMAC(EVP_sha256(), 
+        "example_key", 
+        strlen("example_key"), 
+        to_hash_buffer, 
+        64,
+        NULL,
+        NULL);
+
+
+    log_debug("check hmac beacon 4");
+
+    uint64_t hmac;
+    
+    memcpy(&hmac, hmac_output, sizeof(uint64_t));
+
+    log_debug("check hmac beacon 5");
+
+    if (hmac < sent_hmac)
+    {
+        return 1;
+    }
+    else if (hmac > sent_hmac)
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
 int nan_rx(struct buf *frame, struct nan_state *state)
 {
     signed char rssi;
@@ -699,7 +814,7 @@ int nan_rx(struct buf *frame, struct nan_state *state)
         return RX_TOO_SHORT;
     }
 
-    uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
+    // uint8_t other_opennan_ether_addr[6] = {0x00, 0xC0, 0xCA, 0xAE, 0x65, 0x79};
 
     const struct ieee80211_hdr *ieee80211 = (const struct ieee80211_hdr *)buf_current(frame);
     const struct ether_addr *destination_address = &ieee80211->addr1;
@@ -709,8 +824,8 @@ int nan_rx(struct buf *frame, struct nan_state *state)
 
     if (ether_addr_equal(source_address, &state->self_address))
         return RX_IGNORE_FROM_SELF;
-    else if (ether_addr_equal(source_address, other_opennan_ether_addr))
-        log_debug("nan rx: received from 79");
+    // else if (ether_addr_equal(source_address, other_opennan_ether_addr))
+    //     log_debug("nan rx: received from 79");
         // return RX_IGNORE_FROM_SELF;
 
     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
@@ -719,7 +834,15 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     switch (frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE))
     {
     case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON:
-        return nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
+        // return nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
+        if (check_hmac_beacon(ieee80211, frame))
+        {
+            return nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
+        }
+        else
+        {
+            return RX_HMAC_ERROR;
+        }
     case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION:
         log_trace("Received action frame");
         return nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
