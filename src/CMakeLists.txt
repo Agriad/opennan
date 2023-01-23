@@ -23,6 +23,7 @@ target_sources(nan PRIVATE
         log.c
         peer.h
         peer.c
+        relay.h
         rx.h
         rx.c
         service.h

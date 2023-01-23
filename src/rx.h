@@ -7,6 +7,7 @@
 #include "wire.h"
 #include "attributes.h"
 #include "service.h"
+#include "relay.h"
 
 enum RX_RESULT
 {

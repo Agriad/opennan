@@ -328,16 +328,20 @@ int nan_parse_beacon_header(struct buf *frame, int *beacon_type, uint64_t *times
     return RX_OK;
 }
 
-int nan_rx_beacon(struct buf *frame, struct nan_state *state,
+struct nan_rx_return nan_rx_beacon(struct buf *frame, struct nan_state *state,
                   const struct ether_addr *peer_address, const struct ether_addr *cluster_id,
                   const signed char rssi, const uint64_t now_usec)
 {
+    struct nan_rx_return nan_rx_beacon_return;
     uint64_t timestamp = 0;
     int beacon_type = 0;
     int result = 0;
 
     if ((result = nan_parse_beacon_header(frame, &beacon_type, &timestamp)) != RX_OK)
-        return result;
+    {
+        nan_rx_beacon_return.rx_result = result;
+        return nan_rx_beacon_return;
+    }
 
     log_trace("nan_beacon: received %s beacon from cluster %s",
               nan_beacon_type_to_string(beacon_type),
@@ -349,7 +353,8 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     {
         log_warn("nan_beacon: could not add peer: %s (%d)",
                  ether_addr_to_string(peer_address), peer_status);
-        return RX_IGNORE;
+        nan_rx_beacon_return.rx_result = RX_IGNORE;
+        return nan_rx_beacon_return;
     }
 
     nan_peer_get(&state->peers, peer_address, &peer);
@@ -357,7 +362,8 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     {
         log_warn("nan_beacon: could not get peer: %s (%d)",
                  ether_addr_to_string(peer_address), peer_status);
-        return RX_IGNORE;
+        nan_rx_beacon_return.rx_result = RX_IGNORE;
+        return nan_rx_beacon_return;
     }
 
     log_trace("nan_beacon: received %s beacon from peer %s",
@@ -383,7 +389,10 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
     });
 
     if (result < 0)
-        return result;
+    {
+        nan_rx_beacon_return.rx_result = result;
+        return nan_rx_beacon_return;
+    }
 
     if (peer->anchor_master_rank != peer->last_anchor_master_rank)
     {
@@ -444,7 +453,8 @@ int nan_rx_beacon(struct buf *frame, struct nan_state *state,
         }
     }
 
-    return RX_OK;
+    nan_rx_beacon_return.rx_result = RX_OK;
+    return nan_rx_beacon_return;
 }
 
 int nan_rx_service_discovery(struct buf *frame, struct nan_state *state,
@@ -585,11 +595,14 @@ int nan_rx(struct buf *frame, struct nan_state *state)
 
     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
         return RX_TOO_SHORT;
+        
+    struct nan_rx_return nan_rx_beacon_return;
 
     switch (frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE))
     {
     case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON:
-        return nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
+        nan_rx_beacon_return = nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
+        return nan_rx_beacon_return.rx_result;
     case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION:
         log_trace("Received action frame");
         return nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
