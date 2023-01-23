@@ -507,19 +507,24 @@ int nan_rx_service_discovery(struct buf *frame, struct nan_state *state,
     return result;
 }
 
-int nan_rx_action(struct buf *frame, struct nan_state *state,
+struct nan_rx_return nan_rx_action(struct buf *frame, struct nan_state *state,
                   const struct ether_addr *source_address, const struct ether_addr *destination_address,
                   const struct ether_addr *cluster_id, const uint64_t now_usec)
 {
+    struct nan_rx_return nan_rx_action_return;
     if (buf_rest(frame) < (int)sizeof(struct nan_action_frame))
     {
         log_trace("nan_action: frame to short");
-        return RX_TOO_SHORT;
+        nan_rx_action_return.rx_result = RX_TOO_SHORT;
+        return nan_rx_action_return;
     }
     const struct nan_action_frame *action_frame = (const struct nan_action_frame *)buf_current(frame);
 
     if (!oui_equal(action_frame->oui, NAN_OUI))
-        return RX_IGNORE_OUI;
+    {
+        nan_rx_action_return.rx_result = RX_IGNORE_OUI;
+        return nan_rx_action_return;
+    }
 
     struct nan_peer *peer = NULL;
     enum peer_status status = PEER_MISSING;
@@ -528,7 +533,8 @@ int nan_rx_action(struct buf *frame, struct nan_state *state,
     if (status < 0)
     {
         log_warn("nan_action: could not add peer: %s (%d)", ether_addr_to_string(source_address), status);
-        return RX_IGNORE;
+        nan_rx_action_return.rx_result = RX_IGNORE;
+        return nan_rx_action_return;
     }
     if (status == PEER_OK)
         log_debug("nan_action: peer added %s", ether_addr_to_string(source_address));
@@ -537,19 +543,22 @@ int nan_rx_action(struct buf *frame, struct nan_state *state,
     if (status < 0 || peer == NULL)
     {
         log_warn("nan_action: could not get peer: %s (%d)", ether_addr_to_string(source_address), status);
-        return RX_IGNORE;
+        nan_rx_action_return.rx_result = RX_IGNORE;
+        return nan_rx_action_return;
     }
 
     if (action_frame->oui_type == NAN_OUT_TYPE_SERVICE_DISCOVERY)
     {
         // service discovery frame is just one byte shorter than action frame
         buf_advance(frame, sizeof(struct nan_service_discovery_frame));
-        return nan_rx_service_discovery(frame, state, destination_address, cluster_id, peer);
+        nan_rx_action_return.rx_result = nan_rx_service_discovery(frame, state, destination_address, cluster_id, peer);
+        return nan_rx_action_return;
     }
     if (action_frame->oui_type != NAN_OUI_TYPE_ACTION)
     {
         log_warn("Unknown action frame out type: %d", action_frame->oui_type);
-        return RX_IGNORE;
+        nan_rx_action_return.rx_result = RX_IGNORE;
+        return nan_rx_action_return;
     }
 
     buf_advance(frame, sizeof(struct nan_action_frame));
@@ -557,7 +566,8 @@ int nan_rx_action(struct buf *frame, struct nan_state *state,
               nan_action_frame_subtype_to_string(action_frame->oui_subtype),
               ether_addr_to_string(source_address));
 
-    return RX_OK;
+    nan_rx_action_return.rx_result = RX_OK;
+    return nan_rx_action_return;
 }
 
 int nan_rx(struct buf *frame, struct nan_state *state)
@@ -605,7 +615,8 @@ int nan_rx(struct buf *frame, struct nan_state *state)
         return nan_rx_beacon_return.rx_result;
     case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION:
         log_trace("Received action frame");
-        return nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
+        nan_rx_beacon_return = nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
+        return nan_rx_beacon_return.rx_result;
     default:
         log_trace("ieee80211: cannot handle type %x and subtype %x of received frame from %s",
                   frame_control & IEEE80211_FCTL_FTYPE, frame_control & IEEE80211_FCTL_STYPE, ether_addr_to_string(source_address));
