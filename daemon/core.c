@@ -232,7 +232,8 @@ void nan_receive_frame(uint8_t *user, const struct pcap_pkthdr *header, const ui
     struct daemon_state *state = (void *)user;
     struct buf *frame = buf_new_const(buf, header->caplen);
 
-    int result = nan_rx(frame, &state->nan_state);
+    struct nan_rx_return nan_rx_output = nan_rx(frame, &state->nan_state);
+    int result = nan_rx_output.rx_result;
     if (result < RX_OK)
     {
         log_trace("unhandled frame: %s", nan_rx_result_to_string(result));

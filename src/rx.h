@@ -33,6 +33,6 @@ typedef int (*nan_parse_attribute)(struct buf *frame, void *data);
 
 const char *nan_rx_result_to_string(const int result);
 
-int nan_rx(struct buf *frame, struct nan_state *state);
+struct nan_rx_return nan_rx(struct buf *frame, struct nan_state *state);
 
 #endif // NAN_RX_H_

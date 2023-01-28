@@ -570,28 +570,32 @@ struct nan_rx_return nan_rx_action(struct buf *frame, struct nan_state *state,
     return nan_rx_action_return;
 }
 
-int nan_rx(struct buf *frame, struct nan_state *state)
+struct nan_rx_return nan_rx(struct buf *frame, struct nan_state *state)
 {
     signed char rssi;
     uint8_t flags;
+    struct nan_rx_return nan_rx_output;
 
     uint64_t now_usec = clock_time_usec();
     if (ieee80211_parse_radiotap_header(frame, &rssi, &flags, NULL /*&now_usec*/) < 0)
     {
         log_trace("radiotap: cannot parse header");
-        return RX_UNEXPECTED_FORMAT;
+        nan_rx_output.rx_result = RX_UNEXPECTED_FORMAT;
+        return nan_rx_output;
     }
 
     if (ieee80211_parse_fcs(frame, flags) < 0)
     {
         log_trace("CRC failed");
-        return RX_IGNORE_FAILED_CRC;
+        nan_rx_output.rx_result = RX_IGNORE_FAILED_CRC;
+        return nan_rx_output;
     }
 
     if (buf_rest(frame) < (int)sizeof(struct ieee80211_hdr))
     {
         log_trace("ieee80211: header to short");
-        return RX_TOO_SHORT;
+        nan_rx_output.rx_result = RX_TOO_SHORT;
+        return nan_rx_output;
     }
 
     const struct ieee80211_hdr *ieee80211 = (const struct ieee80211_hdr *)buf_current(frame);
@@ -601,25 +605,30 @@ int nan_rx(struct buf *frame, struct nan_state *state)
     uint16_t frame_control = le16toh(ieee80211->frame_control);
 
     if (ether_addr_equal(source_address, &state->self_address))
-        return RX_IGNORE_FROM_SELF;
+    {
+        nan_rx_output.rx_result = RX_IGNORE_FROM_SELF;
+        return nan_rx_output;
+    }
 
     if (buf_advance(frame, sizeof(struct ieee80211_hdr)) < 0)
-        return RX_TOO_SHORT;
-        
-    struct nan_rx_return nan_rx_beacon_return;
+    {
+        nan_rx_output.rx_result = RX_TOO_SHORT;
+        return nan_rx_output;
+    }
 
     switch (frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE))
     {
     case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_BEACON:
-        nan_rx_beacon_return = nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
-        return nan_rx_beacon_return.rx_result;
+        nan_rx_output = nan_rx_beacon(frame, state, source_address, cluster_id, rssi, now_usec);
+        return nan_rx_output;
     case IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION:
         log_trace("Received action frame");
-        nan_rx_beacon_return = nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
-        return nan_rx_beacon_return.rx_result;
+        nan_rx_output = nan_rx_action(frame, state, source_address, destination_address, cluster_id, now_usec);
+        return nan_rx_output;
     default:
         log_trace("ieee80211: cannot handle type %x and subtype %x of received frame from %s",
                   frame_control & IEEE80211_FCTL_FTYPE, frame_control & IEEE80211_FCTL_STYPE, ether_addr_to_string(source_address));
-        return RX_UNEXPECTED_TYPE;
+        nan_rx_output.rx_result = RX_UNEXPECTED_TYPE;
+        return nan_rx_output;
     }
 }
