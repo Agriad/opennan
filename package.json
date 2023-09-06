@@ -1,0 +1,15 @@
+{
+    "name": "opennan",
+    "version": "1.0.0",
+    "main": "daemon/nan.c",
+    "license": "LGPL-3.0-or-later",
+    "scripts": {
+    },
+    "dependencies": {
+      "uuid": "^9.0.0"
+    },
+    "devDependencies": {
+        "bazel"
+    }
+  }
+  
