@@ -7,6 +7,9 @@ OpenNAN is an open source implementation of a Neighbor Awareness Networking stac
 
 To use OpenNAN, you will need a Wi-Fi card supporting active monitor mode with frame injection.
 
+```sh
+git submodule update --init --recursive
+```
 
 ## Build
 
