@@ -8,6 +8,9 @@ endif ()
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
+set(CMAKE_C_COMPILER "/usr/bin/gcc")
+set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+
 add_library(radiotap radiotap/radiotap.c)
 target_compile_definitions(radiotap PRIVATE -D_DEFAULT_SOURCE -DRADIOTAP_SUPPORT_OVERRIDES)
 
